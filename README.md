@@ -1,4 +1,15 @@
-### Agreement and Rules - This is just a review of the document ### 
+## Team Working Agreements & Rules
+Sprint Working Agreements
+To ensure smooth collaboration, accountability, and tracking during our sprints, the team agrees to the following operational rules:
+## Communication Channel: 
+* We will use one official communication channel for all urgent team updates and coordination.
+## Standup Commitment:
+* Attendance is required for our two weekly syncs. If you cannot make it, you must provide your status update in the team channel before the meeting starts.
+## Board Maintenance:
+* Every developer must update the GitHub Project board immediately whenever the status of their work changes (e.g., moving a card from To Do to In Progress or Done).
+## Blocker Escalation:
+* Document any technical blockers or impediments immediately and explicitly assign an owner to help resolve it.  Code Accountability: Each feature owner is entirely responsible for fully understanding and explaining their own code implementation during reviews and final demos.
+
 ### Branching Strategy & Git Workflow 
 To minimize any code and keep the code stable the following will be considered:
 
