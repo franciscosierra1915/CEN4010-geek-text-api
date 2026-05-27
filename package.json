@@ -1,0 +1,29 @@
+{
+  "name": "geek-text-api",
+  "version": "1.0.0",
+  "description": "Sprint Working Agreements To ensure smooth collaboration, accountability, and tracking during our sprints, the team agrees to the following operational rules: ## Communication Channel:  * We will use one official communication channel for all urgent team updates and coordination. ## Standup Commitment: * Attendance is required for our two weekly syncs. If you cannot make it, you must provide your status update in the team channel before the meeting starts. ## Board Maintenance: * Every developer must update the GitHub Project board immediately whenever the status of their work changes (e.g., moving a card from To Do to In Progress or Done). ## Blocker Escalation: * Document any technical blockers or impediments immediately and explicitly assign an owner to help resolve it.  Code Accountability: Each feature owner is entirely responsible for fully understanding and explaining their own code implementation during reviews and final demos.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:seed": "node prisma/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "prisma": "^6.19.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}
