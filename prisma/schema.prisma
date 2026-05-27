@@ -7,29 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────
+//  BOOK CATALOG
+// ─────────────────────────────────────────────
+
 model Book {
-  id            Int       @id @default(autoincrement())
-  isbn          String    @unique
+  id            Int    @id @default(autoincrement())
+  isbn          String @unique
   title         String
   description   String
   price         Float
   yearPublished Int
-  copiesSold    Int       @default(0)
+  copiesSold    Int    @default(0)
+  coverImage    String?
 
-  authorId      Int
-  publisherId   Int
-  genreId       Int
+  authorId    Int
+  publisherId Int
+  genreId     Int
 
-  author        Author    @relation(fields: [authorId], references: [id])
-  publisher     Publisher @relation(fields: [publisherId], references: [id])
-  genre         Genre     @relation(fields: [genreId], references: [id])
+  author    Author    @relation(fields: [authorId],    references: [id])
+  publisher Publisher @relation(fields: [publisherId], references: [id])
+  genre     Genre     @relation(fields: [genreId],     references: [id])
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  // Related data
+  ratings       Rating[]
+  comments      Comment[]
+  cartItems     CartItem[]
+  wishlistItems WishlistItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Author {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   firstName String
   lastName  String
   biography String?
@@ -37,9 +48,10 @@ model Author {
 }
 
 model Publisher {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  books Book[]
+  id              Int    @id @default(autoincrement())
+  name            String @unique
+  discountPercent Float  @default(0) // e.g. 10.0 = 10% discount
+  books           Book[]
 }
 
 model Genre {
@@ -48,11 +60,109 @@ model Genre {
   books Book[]
 }
 
+// ─────────────────────────────────────────────
+//  USER & PROFILE MANAGEMENT
+// ─────────────────────────────────────────────
+
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  role      String   @default("USER")
+  id          Int     @id @default(autoincrement())
+  username    String  @unique
+  email       String  @unique
+  password    String
+  firstName   String?
+  lastName    String?
+  homeAddress String?
+  role        String  @default("USER") // "USER" | "ADMIN"
+
+  // Related data
+  cartItems   CartItem[]
+  wishlists   Wishlist[]
+  ratings     Rating[]
+  comments    Comment[]
+  creditCards CreditCard[]
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CreditCard {
+  id              Int    @id @default(autoincrement())
+  userId          Int
+  cardholderName  String
+  lastFour        String // store only last 4 digits — never full card number
+  cardType        String // "Visa" | "Mastercard" | "Amex" | "Discover"
+  expirationMonth Int
+  expirationYear  Int
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+//  SHOPPING CART
+// ─────────────────────────────────────────────
+
+model CartItem {
+  id       Int @id @default(autoincrement())
+  userId   Int
+  bookId   Int
+  quantity Int @default(1)
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId]) // one cart entry per book per user
+}
+
+// ─────────────────────────────────────────────
+//  WISHLIST MANAGEMENT
+// ─────────────────────────────────────────────
+
+model Wishlist {
+  id     Int    @id @default(autoincrement())
+  userId Int
+  name   String
+
+  user  User           @relation(fields: [userId], references: [id])
+  items WishlistItem[]
+
+  @@unique([userId, name]) // user can't have two wishlists with the same name
+}
+
+model WishlistItem {
+  id         Int @id @default(autoincrement())
+  wishlistId Int
+  bookId     Int
+
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
+  book     Book     @relation(fields: [bookId],     references: [id])
+
+  @@unique([wishlistId, bookId]) // no duplicate books in a wishlist
+}
+
+// ─────────────────────────────────────────────
+//  BOOK RATING & COMMENTING
+// ─────────────────────────────────────────────
+
+model Rating {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  bookId     Int
+  score      Int      // 1–5 stars
+  datePosted DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId]) // one rating per user per book
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  bookId     Int
+  text       String
+  datePosted DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
 }

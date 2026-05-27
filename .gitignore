@@ -42,3 +42,6 @@ temp_doc
 # Jupyter
 # =========================
 .ipynb_checkpoints/
+
+# Node / JavaScript
+node_modules/
