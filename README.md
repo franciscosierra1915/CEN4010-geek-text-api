@@ -1,8 +1,33 @@
 # Geek Text API
 
-**Course:** CEN 4010 — Principles of Software Engineering
-**Project:** Geek Text — Online Tech Bookstore
-**Layer:** Backend REST API
+**Course:** CEN 4010 — Principles of Software Engineering  
+**Institution:** Florida International University (FIU)  
+**Project:** Geek Text — Online Tech Bookstore  
+**Layer:** Backend REST API  
+**Repository:** https://github.com/franciscosierra1915/CEN4010-geek-text-api  
+
+---
+
+## Team — Group 9: GeekText Architects
+
+| Name | Role | Feature |
+|---|---|---|
+| Francisco Sierra | Scrum Master (Sprint 1 & 2) · Feature Owner | Book Details |
+| Guillermo Yepez | Product Owner (Sprint 1) · Feature Owner | Book Rating & Commenting |
+| Shreya Sureshbabu Banumathi | Feature Owner | Book Browsing & Sorting |
+| Stewart Smith Jr | Feature Owner | Profile Management |
+| Santiago Suli Ramirez | Feature Owner | Shopping Cart |
+| Hiram Torres-Marin | Feature Owner | Wishlist Management |
+
+**Sprint Schedule**
+
+| Sprint | Dates | Goal | Review Date |
+|---|---|---|---|
+| Sprint 1 | May 18 – May 31 | Team setup, roles, architecture, GitHub, backlog | June 2 |
+| Sprint 2 | June 1 – June 14 | Database schema, seed data, first working GET endpoints | June 16 |
+| Sprint 3 | June 15 – June 28 | Individual feature endpoints (all 6 features) | June 30 |
+| Sprint 4 | June 29 – July 12 | Integration, remaining endpoints, documentation | July 14 |
+| Sprint 5 | July 13 – July 26 | Final polish, Swagger docs, demo preparation | July 28 |
 
 ---
 
@@ -247,16 +272,15 @@ Geek Text API/
 
 Each feature is developed in its own isolated Git branch. Here is the current branch map:
 
-| Branch Name | Feature | Description |
+| Branch Name | Feature | Owner |
 |---|---|---|
-| `main` | Stable production code | Only merged, reviewed code goes here |
-| `feature/backend-foundation` | Backend Foundation | Express server, Prisma setup, DB schema, seed data |
-| `Book-Details` | Book Details | View a single book's full information |
-| `Book-Browsing-and-Sorting` | Book Browsing & Sorting | Browse books by genre, top sellers, rating, publisher |
-| `Profile-Management` | User Profile Management | Create and update user profiles |
-| `Shopping-Cart` | Shopping Cart | Add/remove books, view cart, checkout |
-| `Ratings-and-Comments` | Ratings & Comments | Submit and view star ratings and written reviews |
-| `Wishlist-Management` | Wishlist Management | Create wishlists, add/remove books, move to cart |
+| `main` | Stable production code — merged, reviewed code only | All |
+| `Book-Details` | Book Details — view a single book's full information | Francisco Sierra |
+| `Book-Browsing-and-Sorting` | Book Browsing & Sorting — filter by genre, top sellers, rating, publisher | Shreya Sureshbabu Banumathi |
+| `Profile-Management` | Profile Management — create and manage user profiles and credit cards | Stewart Smith Jr |
+| `Shopping-Cart` | Shopping Cart — add/remove books, update quantities | Santiago Suli Ramirez |
+| `Ratings-and-Comments` | Ratings & Comments — submit and view star ratings and written reviews | Guillermo Yepez |
+| `Wishlist-Management` | Wishlist Management — create wishlists, add/remove books | Hiram Torres-Marin |
 
 **Rule:** Never commit directly to `main`. Always work on your feature branch.
 
@@ -674,4 +698,7 @@ These rules were agreed upon by the whole team and apply to everyone equally.
 
 ---
 
-*Last updated by the Backend Foundation team — Sprint 2.*
+---
+
+*CEN 4010 — Group 9: GeekText Architects · Florida International University*  
+*Last updated: May 2026 — Sprint 2 backend foundation complete (Francisco Sierra)*
