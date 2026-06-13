@@ -1,0 +1,9 @@
+# Use this workspace to collaborate
+workspace:
+  id: 97c290a2-d62f-4c31-88c3-2212dceb941c
+
+localResources:
+  collections:
+    - ..\GeekTextAPI.postman_collection.json
+  environments:
+    - ..\GeekTextAPI.postman_environment.json
