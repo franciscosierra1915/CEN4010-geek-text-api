@@ -1,0 +1,29 @@
+{
+  "name": "geek-text-api",
+  "version": "1.0.0",
+  "description": "RESTful API backend for Geek Text — a technology-focused online bookstore. Built with Node.js, Express, PostgreSQL, and Prisma ORM. CEN 4010 Senior Capstone Project — Group 9, Florida International University.",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:seed": "node prisma/seed.js"
+  },
+  "keywords": ["rest-api", "express", "prisma", "postgresql", "bookstore", "nodejs"],
+  "author": "Group 9 — GeekText Architects, Florida International University",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "prisma": "^6.19.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}
