@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  h2.sr-only { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0); }
+
+  .header {
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .header h1 {
+    font-family: -apple-system, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f1f5f9;
+    letter-spacing: 0.5px;
+  }
+  .header p {
+    font-family: -apple-system, sans-serif;
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 3px;
+  }
+
+  .canvas {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  svg.diagram {
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Table styles */
+  .tbl-header { font-weight: 700; font-size: 12px; font-family: -apple-system, sans-serif; }
+  .tbl-field  { font-size: 10.5px; font-family: 'SF Mono', monospace; }
+  .tbl-pk     { fill: #fbbf24; }
+  .tbl-fk     { fill: #f87171; }
+  .tbl-field-normal { fill: #94a3b8; }
+  .tbl-unique { fill: #60a5fa; font-size: 9px; }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    font-family: -apple-system, sans-serif;
+    font-size: 11px;
+    color: #64748b;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .legend-line { width: 20px; height: 2px; flex-shrink: 0; }
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<h2 class="sr-only">Database diagram for Geek Text API — 11 PostgreSQL tables with foreign key relationships, primary keys, and cardinality labels. Generated from the live prisma/schema.prisma in the GitHub repository.</h2>
+
+<div class="header">
+  <h1>Geek Text API — Database Design</h1>
+  <p>PostgreSQL · Prisma ORM · 11 tables · Source: prisma/schema.prisma @ main</p>
+</div>
+
+<div class="canvas">
+<svg class="diagram" viewBox="0 0 1060 760" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:1060px">
+
+  <defs>
+    <!-- Arrow for FK lines -->
+    <marker id="fk-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <polygon points="0,0 7,3.5 0,7" fill="#475569"/>
+    </marker>
+    <marker id="fk-arrow-w" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <polygon points="0,0 7,3.5 0,7" fill="#334155"/>
+    </marker>
+    <!-- "many" crow's foot tick marks -->
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════════
+       BACKGROUND GROUPS
+  ═══════════════════════════════════════════════════ -->
+
+  <!-- Book Catalog group -->
+  <rect x="10" y="10" width="500" height="310" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="24" y="30" font-family="-apple-system,sans-serif" font-size="10" font-weight="600" fill="#475569" letter-spacing="1">BOOK CATALOG</text>
+
+  <!-- User & Payments group -->
+  <rect x="524" y="10" width="526" height="310" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="538" y="30" font-family="-apple-system,sans-serif" font-size="10" font-weight="600" fill="#475569" letter-spacing="1">USER &amp; PROFILE MANAGEMENT</text>
+
+  <!-- Interactions group -->
+  <rect x="10" y="332" width="1040" height="415" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="24" y="352" font-family="-apple-system,sans-serif" font-size="10" font-weight="600" fill="#475569" letter-spacing="1">INTERACTIONS &amp; JUNCTION TABLES</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       HELPER: table box = rect + header bar + rows
+       Colors: Book=#6366f1 Author/Publisher/Genre=#0ea5e9
+               User=#10b981 CreditCard=#10b981
+               Junction=#f59e0b
+  ═══════════════════════════════════════════════════ -->
+
+  <!-- ─── BOOK ─── (center of catalog group) -->
+  <g transform="translate(170, 40)">
+    <!-- header -->
+    <rect width="200" height="28" rx="5" fill="#6366f1"/>
+    <text x="100" y="19" text-anchor="middle" class="tbl-header" fill="#fff">Book</text>
+    <!-- body -->
+    <rect y="28" width="200" height="242" rx="0" fill="#1e3a8a" stroke="#6366f1" stroke-width="1.5" rx="0"/>
+    <rect y="253" width="200" height="17" fill="#1e3a8a" stroke="#6366f1" stroke-width="1.5" rx="0"/>
+    <!-- bottom rounded -->
+    <rect y="270" width="200" height="0" rx="5" fill="none" stroke="#6366f1" stroke-width="1.5"/>
+
+    <!-- PK -->
+    <text x="10" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="120" y="46" class="tbl-field" fill="#475569">Int  PK autoincrement</text>
+
+    <line x1="0" y1="52" x2="200" y2="52" stroke="#2d3a6a" stroke-width="1"/>
+    <text x="10" y="64" class="tbl-field" fill="#60a5fa">★  isbn</text>
+    <text x="120" y="64" class="tbl-field" fill="#475569">String  UNIQUE</text>
+    <text x="10" y="78" class="tbl-field tbl-field-normal">   title</text>
+    <text x="120" y="78" class="tbl-field" fill="#475569">String</text>
+    <text x="10" y="92" class="tbl-field tbl-field-normal">   description</text>
+    <text x="120" y="92" class="tbl-field" fill="#475569">String</text>
+    <text x="10" y="106" class="tbl-field tbl-field-normal">   price</text>
+    <text x="120" y="106" class="tbl-field" fill="#475569">Float</text>
+    <text x="10" y="120" class="tbl-field tbl-field-normal">   yearPublished</text>
+    <text x="120" y="120" class="tbl-field" fill="#475569">Int</text>
+    <text x="10" y="134" class="tbl-field tbl-field-normal">   copiesSold</text>
+    <text x="120" y="134" class="tbl-field" fill="#475569">Int  default 0</text>
+    <text x="10" y="148" class="tbl-field tbl-field-normal">   coverImage</text>
+    <text x="120" y="148" class="tbl-field" fill="#475569">String?</text>
+    <text x="10" y="162" class="tbl-field tbl-field-normal">   createdAt</text>
+    <text x="120" y="162" class="tbl-field" fill="#475569">DateTime</text>
+    <text x="10" y="176" class="tbl-field tbl-field-normal">   updatedAt</text>
+    <text x="120" y="176" class="tbl-field" fill="#475569">DateTime</text>
+
+    <line x1="0" y1="182" x2="200" y2="182" stroke="#2d3a6a" stroke-width="1"/>
+    <text x="10" y="195" class="tbl-field tbl-fk">FK  authorId</text>
+    <text x="120" y="195" class="tbl-field" fill="#475569">Int → Author</text>
+    <text x="10" y="209" class="tbl-field tbl-fk">FK  publisherId</text>
+    <text x="120" y="209" class="tbl-field" fill="#475569">Int → Publisher</text>
+    <text x="10" y="223" class="tbl-field tbl-fk">FK  genreId</text>
+    <text x="120" y="223" class="tbl-field" fill="#475569">Int → Genre</text>
+
+    <!-- outer border -->
+    <rect width="200" height="270" rx="5" fill="none" stroke="#6366f1" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── AUTHOR ─── -->
+  <g transform="translate(22, 60)">
+    <rect width="145" height="28" rx="5" fill="#0ea5e9"/>
+    <text x="72" y="19" text-anchor="middle" class="tbl-header" fill="#fff">Author</text>
+    <rect y="28" width="145" height="100" fill="#0c4a6e" stroke="#0ea5e9" stroke-width="1.5"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="75" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="145" y2="52" stroke="#0c3a5a" stroke-width="1"/>
+    <text x="8" y="64" class="tbl-field tbl-field-normal">   firstName</text>
+    <text x="75" y="64" class="tbl-field" fill="#475569">String</text>
+    <text x="8" y="78" class="tbl-field tbl-field-normal">   lastName</text>
+    <text x="75" y="78" class="tbl-field" fill="#475569">String</text>
+    <text x="8" y="92" class="tbl-field tbl-field-normal">   biography</text>
+    <text x="75" y="92" class="tbl-field" fill="#475569">String?</text>
+    <rect width="145" height="128" rx="5" fill="none" stroke="#0ea5e9" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── PUBLISHER ─── -->
+  <g transform="translate(22, 210)">
+    <rect width="145" height="28" rx="5" fill="#0ea5e9"/>
+    <text x="72" y="19" text-anchor="middle" class="tbl-header" fill="#fff">Publisher</text>
+    <rect y="28" width="145" height="86" fill="#0c4a6e" stroke="#0ea5e9" stroke-width="1.5"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="75" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="145" y2="52" stroke="#0c3a5a" stroke-width="1"/>
+    <text x="8" y="64" class="tbl-field" fill="#60a5fa">★  name</text>
+    <text x="75" y="64" class="tbl-field" fill="#475569">String UNIQUE</text>
+    <text x="8" y="78" class="tbl-field tbl-field-normal">   discountPercent</text>
+    <text x="75" y="78" class="tbl-field" fill="#475569">Float</text>
+    <rect width="145" height="114" rx="5" fill="none" stroke="#0ea5e9" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── GENRE ─── -->
+  <g transform="translate(384, 90)">
+    <rect width="120" height="28" rx="5" fill="#0ea5e9"/>
+    <text x="60" y="19" text-anchor="middle" class="tbl-header" fill="#fff">Genre</text>
+    <rect y="28" width="120" height="72" fill="#0c4a6e" stroke="#0ea5e9" stroke-width="1.5"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="65" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="120" y2="52" stroke="#0c3a5a" stroke-width="1"/>
+    <text x="8" y="64" class="tbl-field" fill="#60a5fa">★  name</text>
+    <text x="65" y="64" class="tbl-field" fill="#475569">String UNIQUE</text>
+    <rect width="120" height="100" rx="5" fill="none" stroke="#0ea5e9" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── USER ─── -->
+  <g transform="translate(535, 40)">
+    <rect width="200" height="28" rx="5" fill="#10b981"/>
+    <text x="100" y="19" text-anchor="middle" class="tbl-header" fill="#fff">User</text>
+    <rect y="28" width="200" height="242" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="110" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="200" y2="52" stroke="#03382b" stroke-width="1"/>
+    <text x="8" y="64" class="tbl-field" fill="#60a5fa">★  username</text>
+    <text x="110" y="64" class="tbl-field" fill="#475569">String UNIQUE</text>
+    <text x="8" y="78" class="tbl-field" fill="#60a5fa">★  email</text>
+    <text x="110" y="78" class="tbl-field" fill="#475569">String UNIQUE</text>
+    <text x="8" y="92" class="tbl-field tbl-field-normal">   password</text>
+    <text x="110" y="92" class="tbl-field" fill="#475569">String (hashed)</text>
+    <text x="8" y="106" class="tbl-field tbl-field-normal">   firstName</text>
+    <text x="110" y="106" class="tbl-field" fill="#475569">String?</text>
+    <text x="8" y="120" class="tbl-field tbl-field-normal">   lastName</text>
+    <text x="110" y="120" class="tbl-field" fill="#475569">String?</text>
+    <text x="8" y="134" class="tbl-field tbl-field-normal">   homeAddress</text>
+    <text x="110" y="134" class="tbl-field" fill="#475569">String?</text>
+    <text x="8" y="148" class="tbl-field tbl-field-normal">   role</text>
+    <text x="110" y="148" class="tbl-field" fill="#475569">String (USER/ADMIN)</text>
+    <text x="8" y="162" class="tbl-field tbl-field-normal">   createdAt</text>
+    <text x="110" y="162" class="tbl-field" fill="#475569">DateTime</text>
+    <text x="8" y="176" class="tbl-field tbl-field-normal">   updatedAt</text>
+    <text x="110" y="176" class="tbl-field" fill="#475569">DateTime</text>
+    <rect width="200" height="270" rx="5" fill="none" stroke="#10b981" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── CREDIT CARD ─── -->
+  <g transform="translate(755" y="60">
+  <g transform="translate(755, 60)">
+    <rect width="280" height="28" rx="5" fill="#10b981"/>
+    <text x="140" y="19" text-anchor="middle" class="tbl-header" fill="#fff">CreditCard</text>
+    <rect y="28" width="280" height="186" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="130" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="280" y2="52" stroke="#03382b" stroke-width="1"/>
+    <text x="8" y="64" class="tbl-field tbl-field-normal">   cardholderName</text>
+    <text x="130" y="64" class="tbl-field" fill="#475569">String</text>
+    <text x="8" y="78" class="tbl-field tbl-field-normal">   lastFour</text>
+    <text x="130" y="78" class="tbl-field" fill="#475569">String (last 4 digits only)</text>
+    <text x="8" y="92" class="tbl-field tbl-field-normal">   cardType</text>
+    <text x="130" y="92" class="tbl-field" fill="#475569">String (Visa/MC/Amex)</text>
+    <text x="8" y="106" class="tbl-field tbl-field-normal">   expirationMonth</text>
+    <text x="130" y="106" class="tbl-field" fill="#475569">Int</text>
+    <text x="8" y="120" class="tbl-field tbl-field-normal">   expirationYear</text>
+    <text x="130" y="120" class="tbl-field" fill="#475569">Int</text>
+    <line x1="0" y1="128" x2="280" y2="128" stroke="#03382b" stroke-width="1"/>
+    <text x="8" y="142" class="tbl-field tbl-fk">FK  userId</text>
+    <text x="130" y="142" class="tbl-field" fill="#475569">Int → User</text>
+    <rect width="280" height="214" rx="5" fill="none" stroke="#10b981" stroke-width="1.5"/>
+  </g>
+
+  <!-- ═══════════ JUNCTION TABLES (bottom group) ═══════════ -->
+
+  <!-- ─── CART ITEM ─── -->
+  <g transform="translate(22, 370)">
+    <rect width="190" height="28" rx="5" fill="#f59e0b"/>
+    <text x="95" y="19" text-anchor="middle" class="tbl-header" fill="#fff">CartItem</text>
+    <rect y="28" width="190" height="130" fill="#451a03" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="90" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="190" y2="52" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="66" class="tbl-field tbl-field-normal">   quantity</text>
+    <text x="90" y="66" class="tbl-field" fill="#475569">Int (default 1)</text>
+    <line x1="0" y1="74" x2="190" y2="74" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="88" class="tbl-field tbl-fk">FK  userId</text>
+    <text x="90" y="88" class="tbl-field" fill="#475569">Int → User</text>
+    <text x="8" y="102" class="tbl-field tbl-fk">FK  bookId</text>
+    <text x="90" y="102" class="tbl-field" fill="#475569">Int → Book</text>
+    <line x1="0" y1="110" x2="190" y2="110" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="124" class="tbl-field" fill="#60a5fa" font-size="9">UNIQUE(userId, bookId)</text>
+    <text x="8" y="137" class="tbl-field" fill="#64748b" font-size="9">one book per user per cart</text>
+    <rect width="190" height="158" rx="5" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+  </g>
+
+  <!-- ─── WISHLIST ─── -->
+  <g transform="translate(232, 370)">
+    <rect width="180" height="28" rx="5" fill="#8b5cf6"/>
+    <text x="90" y="19" text-anchor="middle" class="tbl-header" fill="#fff">Wishlist</text>
+    <rect y="28" width="180" height="130" fill="#2e1065" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="85" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="180" y2="52" stroke="#1e0a4a" stroke-width="1"/>
+    <text x="8" y="66" class="tbl-field tbl-field-normal">   name</text>
+    <text x="85" y="66" class="tbl-field" fill="#475569">String</text>
+    <line x1="0" y1="74" x2="180" y2="74" stroke="#1e0a4a" stroke-width="1"/>
+    <text x="8" y="88" class="tbl-field tbl-fk">FK  userId</text>
+    <text x="85" y="88" class="tbl-field" fill="#475569">Int → User</text>
+    <line x1="0" y1="96" x2="180" y2="96" stroke="#1e0a4a" stroke-width="1"/>
+    <text x="8" y="110" class="tbl-field" fill="#60a5fa" font-size="9">UNIQUE(userId, name)</text>
+    <text x="8" y="123" class="tbl-field" fill="#64748b" font-size="9">user can't have 2 lists with same name</text>
+    <rect width="180" height="158" rx="5" fill="none" stroke="#8b5cf6" stroke-width="1.5"/>
+  </g>
+
+  <!-- ─── WISHLIST ITEM ─── -->
+  <g transform="translate(422, 370)">
+    <rect width="190" height="28" rx="5" fill="#f59e0b"/>
+    <text x="95" y="19" text-anchor="middle" class="tbl-header" fill="#fff">WishlistItem</text>
+    <rect y="28" width="190" height="130" fill="#451a03" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="90" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="190" y2="52" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="66" class="tbl-field tbl-fk">FK  wishlistId</text>
+    <text x="90" y="66" class="tbl-field" fill="#475569">Int → Wishlist</text>
+    <text x="8" y="80" class="tbl-field tbl-fk">FK  bookId</text>
+    <text x="90" y="80" class="tbl-field" fill="#475569">Int → Book</text>
+    <line x1="0" y1="88" x2="190" y2="88" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="102" class="tbl-field" fill="#60a5fa" font-size="9">UNIQUE(wishlistId, bookId)</text>
+    <text x="8" y="115" class="tbl-field" fill="#64748b" font-size="9">no duplicate books in a list</text>
+    <rect width="190" height="158" rx="5" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+  </g>
+
+  <!-- ─── RATING ─── -->
+  <g transform="translate(624, 370)">
+    <rect width="190" height="28" rx="5" fill="#f59e0b"/>
+    <text x="95" y="19" text-anchor="middle" class="tbl-header" fill="#fff">Rating</text>
+    <rect y="28" width="190" height="144" fill="#451a03" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="95" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="190" y2="52" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="66" class="tbl-field tbl-field-normal">   score</text>
+    <text x="95" y="66" class="tbl-field" fill="#475569">Int (1–5)</text>
+    <text x="8" y="80" class="tbl-field tbl-field-normal">   datePosted</text>
+    <text x="95" y="80" class="tbl-field" fill="#475569">DateTime</text>
+    <line x1="0" y1="88" x2="190" y2="88" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="102" class="tbl-field tbl-fk">FK  userId</text>
+    <text x="95" y="102" class="tbl-field" fill="#475569">Int → User</text>
+    <text x="8" y="116" class="tbl-field tbl-fk">FK  bookId</text>
+    <text x="95" y="116" class="tbl-field" fill="#475569">Int → Book</text>
+    <line x1="0" y1="124" x2="190" y2="124" stroke="#5c2a05" stroke-width="1"/>
+    <text x="8" y="138" class="tbl-field" fill="#60a5fa" font-size="9">UNIQUE(userId, bookId)</text>
+    <text x="8" y="151" class="tbl-field" fill="#64748b" font-size="9">one rating per user per book</text>
+    <rect width="190" height="172" rx="5" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+  </g>
+
+  <!-- ─── COMMENT ─── -->
+  <g transform="translate(826, 370)">
+    <rect width="210" height="28" rx="5" fill="#ef4444"/>
+    <text x="105" y="19" text-anchor="middle" class="tbl-header" fill="#fff">Comment</text>
+    <rect y="28" width="210" height="144" fill="#450a0a" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="8" y="46" class="tbl-field tbl-pk">🔑  id</text>
+    <text x="100" y="46" class="tbl-field" fill="#475569">Int  PK</text>
+    <line x1="0" y1="52" x2="210" y2="52" stroke="#3a0808" stroke-width="1"/>
+    <text x="8" y="66" class="tbl-field tbl-field-normal">   text</text>
+    <text x="100" y="66" class="tbl-field" fill="#475569">String</text>
+    <text x="8" y="80" class="tbl-field tbl-field-normal">   datePosted</text>
+    <text x="100" y="80" class="tbl-field" fill="#475569">DateTime</text>
+    <line x1="0" y1="88" x2="210" y2="88" stroke="#3a0808" stroke-width="1"/>
+    <text x="8" y="102" class="tbl-field tbl-fk">FK  userId</text>
+    <text x="100" y="102" class="tbl-field" fill="#475569">Int → User</text>
+    <text x="8" y="116" class="tbl-field tbl-fk">FK  bookId</text>
+    <text x="100" y="116" class="tbl-field" fill="#475569">Int → Book</text>
+    <line x1="0" y1="124" x2="210" y2="124" stroke="#3a0808" stroke-width="1"/>
+    <text x="8" y="138" class="tbl-field" fill="#64748b" font-size="9">multiple comments allowed</text>
+    <text x="8" y="151" class="tbl-field" fill="#64748b" font-size="9">per user per book</text>
+    <rect width="210" height="172" rx="5" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════════════
+       RELATIONSHIP LINES
+       Using simple labeled arrows with cardinality text
+  ═══════════════════════════════════════════════════ -->
+
+  <!-- Book → Author  (N:1) — Book.authorId → Author.id -->
+  <path d="M 170 115 L 167 115" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)"/>
+  <line x1="170" y1="115" x2="167" y2="115" stroke="#475569" stroke-width="1.5"/>
+  <!-- actual line: Author right edge (167,124) → Book left edge (170,195) -->
+  <path d="M 167 124 L 170 195" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)"/>
+  <text x="150" y="165" font-family="-apple-system,sans-serif" font-size="9" fill="#64748b" text-anchor="middle">N : 1</text>
+
+  <!-- Book → Publisher (N:1) -->
+  <path d="M 167 252 L 170 252" stroke="#475569" stroke-width="1.5" fill="none"/>
+  <path d="M 167 296 L 170 223" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)"/>
+  <text x="150" y="268" font-family="-apple-system,sans-serif" font-size="9" fill="#64748b" text-anchor="middle">N : 1</text>
+
+  <!-- Book → Genre (N:1) -->
+  <path d="M 370 165 L 384 140" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)"/>
+  <text x="378" y="158" font-family="-apple-system,sans-serif" font-size="9" fill="#64748b">N:1</text>
+
+  <!-- User → CreditCard (1:N) -->
+  <path d="M 735 165 L 755 165" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)"/>
+  <text x="742" y="160" font-family="-apple-system,sans-serif" font-size="9" fill="#64748b">1 : N</text>
+
+  <!-- User → CartItem (1:N) -->
+  <path d="M 590 310 L 590 340 L 80 340 L 80 370" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+  <text x="340" y="337" font-family="-apple-system,sans-serif" font-size="9" fill="#64748b">User 1:N CartItem</text>
+
+  <!-- Book → CartItem (1:N) -->
+  <path d="M 225 310 L 225 330 L 117 330 L 117 370" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+
+  <!-- User → Wishlist (1:N) -->
+  <path d="M 600 310 L 600 356 L 322 356 L 322 370" stroke="#8b5cf6" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+
+  <!-- Wishlist → WishlistItem (1:N) -->
+  <path d="M 412 449 L 422 449" stroke="#f59e0b" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)"/>
+  <text x="416" y="444" font-family="-apple-system,sans-serif" font-size="9" fill="#f59e0b">1:N</text>
+
+  <!-- Book → WishlistItem (1:N) -->
+  <path d="M 255 310 L 255 360 L 517 360 L 517 370" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+
+  <!-- User → Rating (1:N) -->
+  <path d="M 635 310 L 635 362 L 719 362 L 719 370" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+
+  <!-- Book → Rating (1:N) -->
+  <path d="M 340 310 L 340 365 L 760 365 L 760 370" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+
+  <!-- User → Comment (1:N) -->
+  <path d="M 670 310 L 670 358 L 931 358 L 931 370" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+
+  <!-- Book → Comment (1:N) -->
+  <path d="M 350 310 L 350 368 L 960 368 L 960 370" stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#fk-arrow)" stroke-dasharray="4,3"/>
+
+</svg>
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#6366f1"></div>
+    <span>Book (core entity)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#0ea5e9"></div>
+    <span>Book Catalog (Author, Publisher, Genre)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#10b981"></div>
+    <span>User &amp; Profile</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#8b5cf6"></div>
+    <span>Wishlist</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#f59e0b; border: 2px dashed #f59e0b; background: transparent;"></div>
+    <span>Junction / Bridge tables</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#ef4444"></div>
+    <span>Comment</span>
+  </div>
+  <div style="width:100%; display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin-top:4px;">
+    <div class="legend-item"><span style="color:#fbbf24; font-family:monospace">🔑</span>&nbsp;Primary Key</div>
+    <div class="legend-item"><span style="color:#f87171; font-family:monospace">FK</span>&nbsp;Foreign Key</div>
+    <div class="legend-item"><span style="color:#60a5fa; font-family:monospace">★</span>&nbsp;UNIQUE constraint</div>
+    <div class="legend-item"><span style="color:#94a3b8; font-family:monospace">?</span>&nbsp;Nullable field</div>
+    <div class="legend-item">
+      <div class="legend-line" style="background:#475569; border-top: 2px dashed #475569; background:transparent"></div>&nbsp;Dashed = FK relationship
+    </div>
+  </div>
+</div>
+</body>
+</html>
