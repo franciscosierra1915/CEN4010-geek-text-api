@@ -28,7 +28,7 @@ const profileRoutes = require('./routes/profiles.routes'); // User profile manag
 
 // Future sprint routes — uncomment each line as the corresponding feature branch is merged:
 // const profileRoutes  = require('./routes/profiles.routes');  // Sprint 3 – User Profile Management
-// const cartRoutes     = require('./routes/cart.routes');       // Sprint 3 – Shopping Cart
+const cartRoutes     = require('./routes/cart.routes');       // Sprint 3 – Shopping Cart
 // const ratingRoutes   = require('./routes/ratings.routes');    // Sprint 3 – Book Rating & Commenting
 // const wishlistRoutes = require('./routes/wishlists.routes');  // Sprint 3 – Wishlist Management
 
