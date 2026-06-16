@@ -23,11 +23,12 @@ const cors    = require('cors');    // Middleware that adds CORS headers so brow
 // ── Route Imports ────────────────────────────────────────────────────────────
 // Each feature area lives in its own router file under src/routes/.
 const bookRoutes = require('./routes/books.routes');
-const ratingsRoutes = require('./routes/ratings.routes'); 
+const ratingsRoutes = require('./routes/ratings.routes');
+const authorRoutes = require('./routes/authors.routes'); // Issue #7 — Book Details: Create author
 
 // Future sprint routes — uncomment each line as the corresponding feature branch is merged:
 // const profileRoutes  = require('./routes/profiles.routes');  // Sprint 3 – User Profile Management
-// const cartRoutes     = require('./routes/cart.routes');       // Sprint 3 – Shopping Cart
+const cartRoutes     = require('./routes/cart.routes');       // Sprint 3 – Shopping Cart
 // const ratingRoutes   = require('./routes/ratings.routes');    // Sprint 3 – Book Rating & Commenting
 // const wishlistRoutes = require('./routes/wishlists.routes');  // Sprint 3 – Wishlist Management
 
@@ -88,6 +89,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/books', ratingsRoutes);
 app.use('/api/books', bookRoutes); // All book-related endpoints (browse, details, CRUD)
+app.use('/api/authors', authorRoutes); // Author creation (Book Details — admin feature)
 
 // Uncomment as each sprint's feature is implemented and its branch is merged:
 // app.use('/api/users',     profileRoutes);  // User profile creation and management
