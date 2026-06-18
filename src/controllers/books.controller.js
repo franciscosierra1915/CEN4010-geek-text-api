@@ -194,6 +194,194 @@ const getBookByIsbn = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  createBook
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @function createBook
+ * @summary  Create a new book record (admin feature).
+ * @async
+ *
+ * Implements the "Book Details" checklist item:
+ *   "An administrator must be able to create a book with the book ISBN,
+ *    book name, book description, price, author, genre, publisher,
+ *    year published and copies sold."
+ *
+ * isbn, title, description, price, yearPublished, authorId, genreId, and
+ * publisherId are required. copiesSold and coverImage are optional — a
+ * brand-new book has typically sold 0 copies and may not have cover art
+ * yet, so both default sensibly instead of forcing the client to send
+ * placeholder values (this also matches the team's Postman example body,
+ * which omits copiesSold entirely).
+ *
+ * authorId, genreId, and publisherId are checked against the database
+ * BEFORE the insert (rather than relying solely on the foreign-key
+ * constraint to fail) so the error response can say exactly which
+ * reference was invalid instead of a generic constraint-violation message.
+ *
+ * @param {import('express').Request}  req      - Express request object.
+ * @param {Object}                     req.body - Book Object.
+ * @param {string}  req.body.isbn           - 13-digit ISBN. Required, must be unique.
+ * @param {string}  req.body.title          - Book title. Required.
+ * @param {string}  req.body.description    - Marketing description. Required.
+ * @param {number}  req.body.price          - Retail price in USD. Required, must be > 0.
+ * @param {number}  req.body.yearPublished  - Year of this edition. Required.
+ * @param {number}  req.body.authorId       - Id of an existing Author. Required.
+ * @param {number}  req.body.genreId        - Id of an existing Genre. Required.
+ * @param {number}  req.body.publisherId    - Id of an existing Publisher. Required.
+ * @param {number}  [req.body.copiesSold]   - Copies sold so far. Optional, defaults to 0.
+ * @param {string}  [req.body.coverImage]   - Cover image URL/path. Optional.
+ * @param {import('express').Response} res  - Express response object used to send the reply.
+ *
+ * @returns {void} Sends one of:
+ *   - HTTP 201 with `{ data: Book }` on success (book includes its author,
+ *     publisher, and genre — same shape as getAllBooks/getBookByIsbn).
+ *   - HTTP 400 with `{ error: string }` for missing/invalid fields, an
+ *     authorId/genreId/publisherId that doesn't exist, or an isbn that's
+ *     already in use.
+ *   - HTTP 500 with `{ error: string }` if the database operation fails unexpectedly.
+ *
+ * @example
+ * // POST /api/books
+ * {
+ *   "isbn": "9781234567890",
+ *   "title": "New Tech Book",
+ *   "description": "A new book about software engineering.",
+ *   "price": 49.99,
+ *   "yearPublished": 2026,
+ *   "authorId": 1,
+ *   "publisherId": 1,
+ *   "genreId": 1
+ * }
+ */
+const createBook = async (req, res) => {
+  const {
+    isbn,
+    title,
+    description,
+    price,
+    yearPublished,
+    authorId,
+    genreId,
+    publisherId,
+    copiesSold,
+    coverImage,
+  } = req.body ?? {};
+
+  // ── Validation: required string fields ───────────────────────────────────
+  if (typeof isbn !== 'string' || isbn.trim() === '') {
+    return res.status(400).json({ error: 'isbn is required and must be a non-empty string.' });
+  }
+  if (typeof title !== 'string' || title.trim() === '') {
+    return res.status(400).json({ error: 'title is required and must be a non-empty string.' });
+  }
+  if (typeof description !== 'string' || description.trim() === '') {
+    return res.status(400).json({ error: 'description is required and must be a non-empty string.' });
+  }
+
+  // ── Validation: required numeric fields ──────────────────────────────────
+  // Number(undefined) is NaN and Number('') is 0, so we explicitly reject
+  // missing/empty values before coercing, the same pattern used in authors.controller.js.
+  const numericPrice = Number(price);
+  if (price === undefined || price === null || price === '' || Number.isNaN(numericPrice) || numericPrice <= 0) {
+    return res.status(400).json({ error: 'price is required and must be a number greater than 0.' });
+  }
+
+  const numericYear = Number(yearPublished);
+  if (
+    yearPublished === undefined || yearPublished === null || yearPublished === '' ||
+    !Number.isInteger(numericYear)
+  ) {
+    return res.status(400).json({ error: 'yearPublished is required and must be an integer.' });
+  }
+
+  const numericAuthorId = Number(authorId);
+  if (authorId === undefined || authorId === null || authorId === '' || !Number.isInteger(numericAuthorId)) {
+    return res.status(400).json({ error: 'authorId is required and must be an integer.' });
+  }
+
+  const numericGenreId = Number(genreId);
+  if (genreId === undefined || genreId === null || genreId === '' || !Number.isInteger(numericGenreId)) {
+    return res.status(400).json({ error: 'genreId is required and must be an integer.' });
+  }
+
+  const numericPublisherId = Number(publisherId);
+  if (
+    publisherId === undefined || publisherId === null || publisherId === '' ||
+    !Number.isInteger(numericPublisherId)
+  ) {
+    return res.status(400).json({ error: 'publisherId is required and must be an integer.' });
+  }
+
+  // ── Validation: optional fields ───────────────────────────────────────────
+  let numericCopiesSold = 0; // Matches the schema's @default(0) for a brand-new book
+  if (copiesSold !== undefined && copiesSold !== null && copiesSold !== '') {
+    numericCopiesSold = Number(copiesSold);
+    if (!Number.isInteger(numericCopiesSold) || numericCopiesSold < 0) {
+      return res.status(400).json({ error: 'copiesSold must be a non-negative integer when provided.' });
+    }
+  }
+  if (coverImage !== undefined && coverImage !== null && typeof coverImage !== 'string') {
+    return res.status(400).json({ error: 'coverImage must be a string when provided.' });
+  }
+
+  try {
+    // ── Verify referenced records exist before attempting the insert ────────
+    // Checking explicitly (rather than only catching the eventual foreign-key
+    // violation) lets us tell the client exactly which reference was bad,
+    // even when more than one is invalid at once.
+    const [author, genre, publisher] = await Promise.all([
+      prisma.author.findUnique({ where: { id: numericAuthorId } }),
+      prisma.genre.findUnique({ where: { id: numericGenreId } }),
+      prisma.publisher.findUnique({ where: { id: numericPublisherId } }),
+    ]);
+
+    const missingRefs = [];
+    if (!author) missingRefs.push(`authorId ${numericAuthorId}`);
+    if (!genre) missingRefs.push(`genreId ${numericGenreId}`);
+    if (!publisher) missingRefs.push(`publisherId ${numericPublisherId}`);
+
+    if (missingRefs.length > 0) {
+      return res.status(400).json({ error: `No matching record(s) for: ${missingRefs.join(', ')}.` });
+    }
+
+    const book = await prisma.book.create({
+      data: {
+        isbn: isbn.trim(),
+        title: title.trim(),
+        description: description.trim(),
+        price: numericPrice,
+        yearPublished: numericYear,
+        copiesSold: numericCopiesSold,
+        coverImage: coverImage ?? null,
+        authorId: numericAuthorId,
+        genreId: numericGenreId,
+        publisherId: numericPublisherId,
+      },
+      include: {
+        author:    true, // Joins the Author table — returns the full author object
+        publisher: true, // Joins the Publisher table — includes discount info
+        genre:     true, // Joins the Genre table — returns the genre name
+      },
+    });
+
+    // HTTP 201 (Created) is the conventional success status for POST, per the
+    // course's REST API Expectations slides — not 200.
+    res.status(201).json({ data: book });
+  } catch (error) {
+    // Prisma error code P2002 = unique constraint violation — isbn is @unique
+    // on the Book model, so this means the client supplied an isbn already
+    // in use. A duplicate isbn is a bad request (400), not a server failure (500).
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: `A book with isbn "${isbn}" already exists.` });
+    }
+
+    console.error('createBook error:', error);
+    res.status(500).json({ error: 'Failed to create book.' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  Exports
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -204,4 +392,5 @@ const getBookByIsbn = async (req, res) => {
 module.exports = {
   getAllBooks,
   getBookByIsbn,
+  createBook,
 };
