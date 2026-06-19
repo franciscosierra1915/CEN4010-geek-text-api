@@ -13,21 +13,23 @@ const { PrismaClient } = require('@prisma/client'); // Import the auto-generated
 const prisma = new PrismaClient();
 
 
-
+const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
 
 const createUser = async (req, res) => {
   try {
    
-    
+    const saltRounds = 10; // Number of salt rounds for bcrypt
+    const { username, email, password, firstName, lastName, homeAddress, role } = req.body;
  
+    const hash =await bcrypt.hash(password, 10);
 
     //console.log('Creating user with data:', { username, email, password, firstName, lastName, homeAddress, role });
-    const { username, email, password, firstName, lastName, homeAddress, role } = req.body;
+
     const newUser = await prisma.user.create({
       data: {
         username,   
         email,
-        password,
+        password: hash, // Hash the password before storing it
         firstName,
         lastName,
         homeAddress,
@@ -72,6 +74,31 @@ const getAllUsers = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve users.' });
   }
 };
+
+const getUserByUsername = async (req, res) => {
+  try {
+    const { userName } = req.params; // Extract the user ID from the URL parameters
+    const user = await prisma.user.findUnique({
+      where: { username: userName }, // Find the user by their username (which is unique in our schema)
+      select: {
+        username: true, // returns the profile's username
+        email:     true, // returns the profile's email
+        password:  true, // returns the profile's password
+        firstName: true, // returns the profile's first name
+        lastName:  true, // returns the profile's last name
+        homeAddress:  true, // returns the profile's hometown
+        role: true, // returns the profile's role (e.g., admin, user)
+      },
+    });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('getUserByUsername error:', error);
+    res.status(500).json({ error: 'Failed to retrieve user.' });
+  }
+};
 // ─────────────────────────────────────────────────────────────────────────────
 //  Exports
 // ─────────────────────────────────────────────────────────────────────────────
@@ -83,4 +110,5 @@ const getAllUsers = async (req, res) => {
 module.exports = {
   createUser,
   getAllUsers,
+  getUserByUsername,
 };
