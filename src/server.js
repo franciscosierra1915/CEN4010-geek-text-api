@@ -88,7 +88,7 @@ app.get('/health', (req, res) => {
 // Example: a route defined as GET / inside bookRoutes becomes GET /api/books.
 
 app.use('/api/books', bookRoutes); // All book-related endpoints (browse, details, CRUD)
-app.use('/api', ratingsRoutes);
+app.use('/api', ratingsRoutes); // Star ratings and written comments. Had to leave it this way since the code wouldn't run any other way  
 
 // Uncomment as each sprint's feature is implemented and its branch is merged:
 // app.use('/api/users',     profileRoutes);  // User profile creation and management

@@ -3,9 +3,16 @@
  * @description Controller functions for all Book Rating and Comment API endpoints.
  * @module controllers/ratings
  */
+/*
+const { PrismaClient } = require('@prisma/client');
+const e = require('express');
+// const { use } = require('react'); Created Issues with creating comment task
+const prisma = new PrismaClient();
+*/
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const validator = require('validator'); // Add this line so your comment sanitization works!
 
 /**
  * @function getBookRatings
@@ -84,8 +91,44 @@ const addOrUpdateRating = async (req, res) => {
   }
 };
 
+/**
+ * @function addOrUpdateComment
+ * @summary  Sanitize and save a text-based review/comment for a specific book.
+ * @async
+ */
+const addOrUpdateComment = async (req, res) => {
+  const { text, userId, bookId } = req.body;
+// ── Validation Rules ──────────────────────────────────────────────────────  
+  if (!text || userId === undefined ||  bookId === undefined) {
+    return res.status(400).json({ error: 'Missing required fields: text, userId, and bookId are required.' });
+  }
+  if (typeof text != 'string' || text.trim() == '') {
+    return res.status(400).json({ error: 'Validation failed: Comment text cannot be empty.' });
+  }
+
+  try{
+    const sanitizedText = validator.escape(text.trim());
+
+    const comment = await prisma.comment.create({
+      data: {
+        userId: parseInt(userId, 10),
+        bookId: parseInt(bookId, 10),
+        text: sanitizedText,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Comment posted successfully.',
+      data: comment,
+    });
+  } catch(error){
+    console.error("addOrUpdateComment error: ", error);
+    return res.status(500).json({error: 'Failed to save comment due to a server error.'});
+  }
+};
 // ── Module Exports ───────────────────────────────────────────────────────────
 module.exports = {
   getBookRatings,
   addOrUpdateRating,
+  addOrUpdateComment,
 };
