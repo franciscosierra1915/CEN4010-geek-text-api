@@ -24,11 +24,11 @@ const cors    = require('cors');    // Middleware that adds CORS headers so brow
 // Each feature area lives in its own router file under src/routes/.
 const bookRoutes = require('./routes/books.routes');
 const ratingsRoutes = require('./routes/ratings.routes'); 
+const browsingRoutes = require('./routes/browsing.routes');
 
 // Future sprint routes — uncomment each line as the corresponding feature branch is merged:
 // const profileRoutes  = require('./routes/profiles.routes');  // Sprint 3 – User Profile Management
 // const cartRoutes     = require('./routes/cart.routes');       // Sprint 3 – Shopping Cart
-// const ratingRoutes   = require('./routes/ratings.routes');    // Sprint 3 – Book Rating & Commenting
 // const wishlistRoutes = require('./routes/wishlists.routes');  // Sprint 3 – Wishlist Management
 
 // ── App Setup ────────────────────────────────────────────────────────────────
@@ -88,11 +88,11 @@ app.get('/health', (req, res) => {
 
 app.use('/api/books', ratingsRoutes);
 app.use('/api/books', bookRoutes); // All book-related endpoints (browse, details, CRUD)
+app.use('/api/books', browsingRoutes);
 
 // Uncomment as each sprint's feature is implemented and its branch is merged:
 // app.use('/api/users',     profileRoutes);  // User profile creation and management
 // app.use('/api/cart',      cartRoutes);     // Add-to-cart, update quantity, checkout
-// app.use('/api/ratings',   ratingRoutes);   // Star ratings and written comments
 // app.use('/api/wishlists', wishlistRoutes); // Create wishlists and move items to cart
 
 // ── 404 Catch-All ─────────────────────────────────────────────────────────────
