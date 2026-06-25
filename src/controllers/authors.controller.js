@@ -132,6 +132,86 @@ const createAuthor = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  getBooksByAuthor
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @function getBooksByAuthor
+ * @summary  Fetch every book written by a given author.
+ * @async
+ *
+ * Implements the "Book Details" checklist item:
+ *   "Must be able to retrieve a list of books associated with an author."
+ *
+ * Looks the author up first (via `findUnique`) rather than going straight to
+ * `book.findMany({ where: { authorId } })`, because that's the only way to
+ * tell "author exists but has written zero books" (200 with an empty array)
+ * apart from "no author with this id" (404) — a bare findMany on Book would
+ * return an empty array in both cases and hide a bad authorId from the client.
+ *
+ * @param {import('express').Request}  req            - Express request object.
+ * @param {string}                     req.params.id  - The author's id (URL path parameter).
+ * @param {import('express').Response} res            - Express response object used to send the reply.
+ *
+ * @returns {void} Sends one of:
+ *   - HTTP 200 with `{ count: number, data: Book[] }` when the author exists
+ *     (data is `[]` if they have no books yet).
+ *   - HTTP 400 with `{ error: string }` if the id is not a valid integer.
+ *   - HTTP 404 with `{ error: string }` if no author has that id.
+ *   - HTTP 500 with `{ error: string }` if the database query fails.
+ *
+ * @example
+ * // GET /api/authors/3/books
+ * // Successful response body
+ * {
+ *   "count": 2,
+ *   "data": [
+ *     { "id": 5, "isbn": "9780132350884", "title": "Clean Code", "publisher": {...}, "genre": {...} },
+ *     { "id": 9, "isbn": "9780134494166", "title": "Clean Architecture", "publisher": {...}, "genre": {...} }
+ *   ]
+ * }
+ */
+const getBooksByAuthor = async (req, res) => {
+  const { id } = req.params;
+
+  // ── Validation ──────────────────────────────────────────────────────────
+  // Number(undefined) is NaN and Number('') is 0, so we explicitly reject
+  // missing/empty values before coercing — same guard used elsewhere in this file.
+  const numericId = Number(id);
+  if (id === undefined || id === null || id === '' || !Number.isInteger(numericId)) {
+    return res.status(400).json({ error: 'Author id must be an integer.' });
+  }
+
+  try {
+    const author = await prisma.author.findUnique({
+      where: { id: numericId },
+      include: {
+        books: {
+          include: {
+            publisher: true, // Joins the Publisher table — includes discount info
+            genre:     true, // Joins the Genre table — returns the genre name
+          },
+          orderBy: { title: 'asc' }, // Sort alphabetically by title, matching getAllBooks
+        },
+      },
+    });
+
+    // If Prisma returns null, no author matched the given id — send a 404.
+    if (!author) {
+      return res.status(404).json({ error: `Author with id ${numericId} not found.` });
+    }
+
+    res.status(200).json({
+      count: author.books.length, // Total number of books returned
+      data:  author.books,        // Array of book objects with nested publisher/genre
+    });
+  } catch (error) {
+    console.error('getBooksByAuthor error:', error);
+    res.status(500).json({ error: 'Failed to retrieve books for author.' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  Exports
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -141,4 +221,5 @@ const createAuthor = async (req, res) => {
  */
 module.exports = {
   createAuthor,
+  getBooksByAuthor,
 };

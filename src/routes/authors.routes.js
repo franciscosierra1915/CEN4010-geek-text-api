@@ -12,6 +12,7 @@
  *
  * Sprint ownership:
  *   - Issue #7 ("Book Details: Create author") — POST endpoint below.
+ *   - Issue #8 ("Book Details: Retrieve books by author") — GET endpoint below.
  *
  * @module routes/authors
  */
@@ -37,6 +38,28 @@ const authorsCtrl = require('../controllers/authors.controller'); // Controller 
  * @see authorsCtrl.createAuthor
  */
 router.post('/', authorsCtrl.createAuthor);
+
+/**
+ * @route   GET /api/authors/:id/books
+ * @summary Retrieve every book written by a given author.
+ * @access  Public
+ *
+ * @param {string} id - The author's id (URL path parameter).
+ *
+ * Response shape on success:
+ * ```json
+ * {
+ *   "count": 2,
+ *   "data": [ { "id": 5, "isbn": "...", "title": "...", "publisher": {...}, "genre": {...} }, ... ]
+ * }
+ * ```
+ *
+ * Returns HTTP 404 if no author with the given id exists; HTTP 200 with an
+ * empty `data` array if the author exists but hasn't written any books yet.
+ *
+ * @see authorsCtrl.getBooksByAuthor
+ */
+router.get('/:id/books', authorsCtrl.getBooksByAuthor);
 
 /** Export the configured router so server.js can mount it with app.use() */
 module.exports = router;
