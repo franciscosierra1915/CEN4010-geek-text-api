@@ -28,7 +28,7 @@ const bookRoutes = require('./routes/books.routes');
 // const profileRoutes  = require('./routes/profiles.routes');  // Sprint 3 – User Profile Management
 // const cartRoutes     = require('./routes/cart.routes');       // Sprint 3 – Shopping Cart
 // const ratingRoutes   = require('./routes/ratings.routes');    // Sprint 3 – Book Rating & Commenting
-// const wishlistRoutes = require('./routes/wishlists.routes');  // Sprint 3 – Wishlist Management
+const wishlistRoutes = require('./routes/wishlists.routes');  // Sprint 3 – Wishlist Management
 
 // ── App Setup ────────────────────────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ app.use('/api/books', bookRoutes); // All book-related endpoints (browse, detail
 // app.use('/api/users',     profileRoutes);  // User profile creation and management
 // app.use('/api/cart',      cartRoutes);     // Add-to-cart, update quantity, checkout
 // app.use('/api/ratings',   ratingRoutes);   // Star ratings and written comments
-// app.use('/api/wishlists', wishlistRoutes); // Create wishlists and move items to cart
+app.use('/api/wishlists', wishlistRoutes); // Create wishlists and move items to cart
 
 // ── 404 Catch-All ─────────────────────────────────────────────────────────────
 
