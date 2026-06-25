@@ -194,7 +194,7 @@
           "response": []
         },
         {
-          "name": "🔜 POST /api/books — Create a new book [Sprint 3]",
+          "name": "✅ POST /api/books — Create a new book",
           "request": {
             "method": "POST",
             "header": [
@@ -209,8 +209,166 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "books"]
             },
-            "description": "Creates a new book record in the catalog.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nThis endpoint will be implemented by Francisco Sierra in Sprint 3 on the `Book-Details` branch."
+            "description": "Creates a new book record in the catalog.\n\nRequired: isbn, title, description, price, yearPublished, authorId, genreId, publisherId.\nOptional: copiesSold (defaults to 0 — a new book hasn't sold any copies yet), coverImage.\n\n**Sprint 3 — Implemented ✅**\n\nImplemented by Francisco Sierra on the `Book-Details` branch (`create-book-endpoint`).\n\n**Expected response (201 Created):**\n```json\n{\n  \"data\": {\n    \"id\": 31,\n    \"isbn\": \"9781234567890\",\n    \"title\": \"New Tech Book\",\n    \"price\": 49.99,\n    \"yearPublished\": 2026,\n    \"copiesSold\": 0,\n    \"coverImage\": null,\n    \"authorId\": 1,\n    \"genreId\": 1,\n    \"publisherId\": 1,\n    \"author\": { \"id\": 1, \"firstName\": \"...\" },\n    \"genre\": { \"id\": 1, \"name\": \"...\" },\n    \"publisher\": { \"id\": 1, \"name\": \"...\" }\n  }\n}\n```\n\n**Possible 400 errors:**\n- A required field is missing/invalid (see the dedicated 400 test below).\n- isbn already exists: `{ \"error\": \"A book with isbn \\\"...\\\" already exists.\" }`\n- authorId/genreId/publisherId doesn't exist: `{ \"error\": \"No matching record(s) for: authorId 999.\" }`"
           },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has data field', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('Created book has required fields', function () {",
+                  "    const book = pm.response.json().data;",
+                  "    pm.expect(book).to.have.property('isbn');",
+                  "    pm.expect(book).to.have.property('title');",
+                  "    pm.expect(book).to.have.property('author');",
+                  "    pm.expect(book).to.have.property('genre');",
+                  "    pm.expect(book).to.have.property('publisher');",
+                  "});",
+                  "",
+                  "pm.test('copiesSold defaults to 0 when omitted', function () {",
+                  "    const book = pm.response.json().data;",
+                  "    pm.expect(book.copiesSold).to.eql(0);",
+                  "});",
+                  "",
+                  "// Save the new book's id in case later requests want to reference it",
+                  "pm.environment.set('createdBookId', pm.response.json().data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "✅ POST /api/books — 400 test (missing required field)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Missing ISBN Test\",\n  \"description\": \"This request intentionally omits isbn to test validation.\",\n  \"price\": 19.99,\n  \"yearPublished\": 2026,\n  \"authorId\": 1,\n  \"genreId\": 1,\n  \"publisherId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"]
+            },
+            "description": "Tests that the API correctly rejects a book with a missing required field (isbn).\n\n**Expected response (400 Bad Request):**\n```json\n{ \"error\": \"isbn is required and must be a non-empty string.\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message is present', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('error');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "✅ POST /api/authors — Create a new author",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Kent\",\n  \"lastName\": \"Beck\",\n  \"biography\": \"Pioneer of Extreme Programming and Test-Driven Development.\",\n  \"publisherId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/authors",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors"]
+            },
+            "description": "Creates a new author record.\n\nRequired: firstName, lastName.\nOptional: biography, publisherId (must reference an existing Publisher if provided).\n\n**Sprint 3 — Implemented ✅**\n\nImplemented by Francisco Sierra on the `Book-Details` branch (Issue #7, merged via PR #48).\n\n**Expected response (201 Created):**\n```json\n{\n  \"data\": {\n    \"id\": 11,\n    \"firstName\": \"Kent\",\n    \"lastName\": \"Beck\",\n    \"biography\": \"Pioneer of Extreme Programming and Test-Driven Development.\",\n    \"publisherId\": 1,\n    \"publisher\": { \"id\": 1, \"name\": \"...\" }\n  }\n}\n```\n\n**Possible 400 errors:**\n- A required field is missing (see the dedicated 400 test below).\n- publisherId doesn't exist: `{ \"error\": \"Publisher with id 999 does not exist.\" }`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has data field', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('Created author has required fields', function () {",
+                  "    const author = pm.response.json().data;",
+                  "    pm.expect(author).to.have.property('firstName');",
+                  "    pm.expect(author).to.have.property('lastName');",
+                  "});",
+                  "",
+                  "// Save the new author's id in case later requests want to reference it",
+                  "pm.environment.set('createdAuthorId', pm.response.json().data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "✅ POST /api/authors — 400 test (missing required fields)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"biography\": \"An author missing first and last name.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/authors",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors"]
+            },
+            "description": "Tests that the API correctly rejects an author with missing required fields (firstName, lastName).\n\n**Expected response (400 Bad Request):**\n```json\n{ \"error\": \"firstName is required and must be a non-empty string.\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message is present', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('error');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "response": []
         },
         {
