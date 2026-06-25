@@ -1,0 +1,637 @@
+{
+  "info": {
+    "_postman_id": "geek-text-api-v2-sprint2",
+    "name": "Geek Text API — CEN 4010 Group 9",
+    "description": "RESTful API collection for the Geek Text online tech bookstore.\n\nCourse: CEN 4010 — Principles of Software Engineering\nTeam: Group 9 — GeekText Architects\nInstitution: Florida International University\n\n---\n\n**Setup:**\n1. Import this collection AND the environment file `GeekTextAPI.postman_environment.json`\n2. Select the \"Geek Text API — Local\" environment from the top-right dropdown\n3. Make sure your local server is running: `npm run dev`\n4. The `{{baseUrl}}` variable resolves to `http://localhost:3000`\n\n**Sprint 2 Status:**\n- ✅ Health Check\n- ✅ GET all books\n- ✅ GET book by ISBN\n- 🔜 All other endpoints (Sprint 3)\n\n**Folder Structure:**\nEach folder maps to one team feature. Implemented endpoints are ready to run. Placeholders will return 404 until Sprint 3 implementation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "Base URL for local development. Change to staging/production URL when deploying."
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health Check",
+      "description": "Server liveness check. Use this to confirm the API is running before testing any feature endpoints.",
+      "item": [
+        {
+          "name": "GET /health — Server status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Quick sanity check that the Express server is alive and responsive.\n\n**Expected response (200 OK):**\n```json\n{\n  \"status\": \"OK\",\n  \"message\": \"Geek Text API is running\",\n  \"timestamp\": \"2026-06-02T...\"\n}\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has status OK', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.status).to.eql('OK');",
+                  "});",
+                  "",
+                  "pm.test('Response time is under 500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📚 Book Details (Francisco Sierra)",
+      "description": "Feature owner: Francisco Sierra\n\nEndpoints for retrieving, creating, and managing individual book records.\n\nSprint 2: GET endpoints ✅\nSprint 3: POST/PATCH endpoints 🔜",
+      "item": [
+        {
+          "name": "✅ GET /api/books — Retrieve all books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"]
+            },
+            "description": "Returns all 30 books in the catalog. Each book includes its nested Author, Publisher, and Genre.\n\n**Sprint 2 — Implemented ✅**\n\n**Expected response (200 OK):**\n```json\n{\n  \"count\": 30,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"isbn\": \"9780132350884\",\n      \"title\": \"Clean Code\",\n      \"price\": 49.99,\n      \"author\":    { \"firstName\": \"Robert\", \"lastName\": \"Martin\" },\n      \"publisher\": { \"name\": \"Addison-Wesley\", \"discountPercent\": 5 },\n      \"genre\":     { \"name\": \"Software Engineering\" }\n    },\n    ...\n  ]\n}\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has count and data fields', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('count');",
+                  "    pm.expect(body).to.have.property('data');",
+                  "    pm.expect(body.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Returns 30 books', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.count).to.eql(30);",
+                  "});",
+                  "",
+                  "pm.test('Each book has required fields', function () {",
+                  "    const book = pm.response.json().data[0];",
+                  "    pm.expect(book).to.have.property('isbn');",
+                  "    pm.expect(book).to.have.property('title');",
+                  "    pm.expect(book).to.have.property('price');",
+                  "    pm.expect(book).to.have.property('author');",
+                  "    pm.expect(book).to.have.property('publisher');",
+                  "    pm.expect(book).to.have.property('genre');",
+                  "});",
+                  "",
+                  "// Save the first book's ISBN for use in other requests",
+                  "const firstBook = pm.response.json().data[0];",
+                  "pm.environment.set('sampleIsbn', firstBook.isbn);",
+                  "pm.environment.set('sampleBookId', firstBook.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "✅ GET /api/books/isbn/:isbn — Retrieve book by ISBN",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/isbn/{{isbnCleanCode}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "isbn", "{{isbnCleanCode}}"]
+            },
+            "description": "Returns a single book by its 13-digit ISBN. Includes author, publisher, genre, all ratings, all comments, and a computed averageRating.\n\n**Sprint 2 — Implemented ✅**\n\n**Sample ISBNs to test:**\n- Clean Code: `9780132350884`\n- Deep Learning: `9780262035613`\n- Kubernetes Up and Running: `9781492046530`\n- Designing Data-Intensive Apps: `9781449373320`\n\n**Expected response (200 OK):**\n```json\n{\n  \"data\": {\n    \"isbn\": \"9780132350884\",\n    \"title\": \"Clean Code\",\n    \"averageRating\": 4.50,\n    \"ratings\": [...],\n    \"comments\": [...]\n  }\n}\n```\n\n**Expected response (404 Not Found):**\n```json\n{ \"error\": \"Book with ISBN \\\"000\\\" not found.\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has data field', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('Book has averageRating field', function () {",
+                  "    const book = pm.response.json().data;",
+                  "    pm.expect(book).to.have.property('averageRating');",
+                  "});",
+                  "",
+                  "pm.test('Book has ratings array', function () {",
+                  "    const book = pm.response.json().data;",
+                  "    pm.expect(book.ratings).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Book has comments array', function () {",
+                  "    const book = pm.response.json().data;",
+                  "    pm.expect(book.comments).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "✅ GET /api/books/isbn/:isbn — 404 test (invalid ISBN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/isbn/0000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "isbn", "0000000000000"]
+            },
+            "description": "Tests that the API correctly returns 404 when an ISBN does not exist in the database.\n\n**Expected response (404 Not Found):**\n```json\n{ \"error\": \"Book with ISBN \\\"0000000000000\\\" not found.\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error message is present', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('error');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "🔜 POST /api/books — Create a new book [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"9781234567890\",\n  \"title\": \"New Tech Book\",\n  \"description\": \"A new book about software engineering.\",\n  \"price\": 49.99,\n  \"yearPublished\": 2026,\n  \"authorId\": 1,\n  \"publisherId\": 1,\n  \"genreId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books"]
+            },
+            "description": "Creates a new book record in the catalog.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nThis endpoint will be implemented by Francisco Sierra in Sprint 3 on the `Book-Details` branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 PATCH /api/books/:id/price — Update book price [Sprint 3]",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 39.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{sampleBookId}}/price",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "{{sampleBookId}}", "price"]
+            },
+            "description": "Updates the price of a specific book.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Francisco Sierra — Book-Details branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 POST /api/books/:id/authors — Add author to book [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{sampleBookId}}/authors",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "{{sampleBookId}}", "authors"]
+            },
+            "description": "Associates an additional author with a book.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Francisco Sierra — Book-Details branch."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔍 Book Browsing & Sorting (Shreya Sureshbabu Banumathi)",
+      "description": "Feature owner: Shreya Sureshbabu Banumathi\nBranch: Book-Browsing-and-Sorting\n\nEndpoints for filtering and sorting the book catalog.\n\nAll endpoints: Sprint 3 🔜",
+      "item": [
+        {
+          "name": "🔜 GET /api/books/genre/:genreId — Books by genre [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/genre/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "genre", "1"],
+              "variable": [
+                {
+                  "key": "genreId",
+                  "value": "1",
+                  "description": "Genre IDs: 1=Software Engineering, 2=Artificial Intelligence, 3=Cybersecurity, 4=Cloud Computing, 5=Data Science"
+                }
+              ]
+            },
+            "description": "Returns all books belonging to a specific genre.\n\n**Sample genre IDs:**\n- 1 = Software Engineering\n- 2 = Artificial Intelligence\n- 3 = Cybersecurity\n- 4 = Cloud Computing\n- 5 = Data Science\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 GET /api/books/top-sellers — Top 10 selling books [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/top-sellers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "top-sellers"]
+            },
+            "description": "Returns the top 10 books ranked by copies sold (descending).\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 GET /api/books/rating/:minRating — Books by minimum rating [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/rating/4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "rating", "4"]
+            },
+            "description": "Returns all books whose average rating is at or above the specified minimum (1–5).\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 GET /api/books/publisher/:publisherId — Books by publisher with discount [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/publisher/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "publisher", "1"],
+              "variable": [
+                {
+                  "key": "publisherId",
+                  "value": "1",
+                  "description": "Publisher IDs: 1=O'Reilly (10%), 2=No Starch Press (15%), 3=Addison-Wesley (5%), 4=Manning (20%), 5=Packt (25%)"
+                }
+              ]
+            },
+            "description": "Returns all books from a specific publisher with the publisher's discount percentage applied to the price.\n\n**Sample publisher IDs:**\n- 1 = O'Reilly Media (10% discount)\n- 2 = No Starch Press (15% discount)\n- 3 = Addison-Wesley (5% discount)\n- 4 = Manning Publications (20% discount)\n- 5 = Packt Publishing (25% discount)\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 Profile Management (Stewart Smith Jr)",
+      "description": "Feature owner: Stewart Smith Jr\nBranch: Profile-Management\n\nEndpoints for creating and managing user profiles and payment methods.\n\nAll endpoints: Sprint 3 🔜",
+      "item": [
+        {
+          "name": "🔜 POST /api/users — Create user profile [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"new_user\",\n  \"email\": \"newuser@geektext.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"homeAddress\": \"123 Main St, Miami, FL 33101\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Creates a new user account in the system.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Stewart Smith Jr — Profile-Management branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 GET /api/users/:id — Retrieve user by ID [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{sampleUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{sampleUserId}}"]
+            },
+            "description": "Returns a user's profile by their ID. Passwords and sensitive fields are never returned.\n\nSample user IDs in seed data: 1–5\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Stewart Smith Jr — Profile-Management branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 PUT /api/users/:id — Update user profile [Sprint 3]",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Name\",\n  \"homeAddress\": \"456 New St, Orlando, FL 32801\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{sampleUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{sampleUserId}}"]
+            },
+            "description": "Updates a user's profile fields (excluding email).\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Stewart Smith Jr — Profile-Management branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 POST /api/users/:id/credit-cards — Add credit card [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cardholderName\": \"Stewart Smith\",\n  \"lastFour\": \"1234\",\n  \"cardType\": \"Visa\",\n  \"expirationMonth\": 12,\n  \"expirationYear\": 2028\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{sampleUserId}}/credit-cards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{sampleUserId}}", "credit-cards"]
+            },
+            "description": "Adds a new credit card to a user's profile. Only stores last 4 digits — never the full card number.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Stewart Smith Jr — Profile-Management branch."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🛒 Shopping Cart (Santiago Suli Ramirez)",
+      "description": "Feature owner: Santiago Suli Ramirez\nBranch: Shopping-Cart\n\nEndpoints for managing a user's shopping cart.\n\nAll endpoints: Sprint 3 🔜",
+      "item": [
+        {
+          "name": "🔜 GET /api/cart/:userId — Retrieve cart [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/{{sampleUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "{{sampleUserId}}"]
+            },
+            "description": "Returns all books currently in a user's shopping cart with quantities.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Santiago Suli Ramirez — Shopping-Cart branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 POST /api/cart — Add book to cart [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 1,\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart"]
+            },
+            "description": "Adds a book to a user's cart, or updates the quantity if the book is already in the cart.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Santiago Suli Ramirez — Shopping-Cart branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 PUT /api/cart/:userId/books/:bookId — Update quantity [Sprint 3]",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/{{sampleUserId}}/books/{{sampleBookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "{{sampleUserId}}", "books", "{{sampleBookId}}"]
+            },
+            "description": "Updates the quantity of a specific book in the cart.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Santiago Suli Ramirez — Shopping-Cart branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 DELETE /api/cart/:userId/books/:bookId — Remove book from cart [Sprint 3]",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/{{sampleUserId}}/books/{{sampleBookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cart", "{{sampleUserId}}", "books", "{{sampleBookId}}"]
+            },
+            "description": "Removes a specific book from the user's shopping cart.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Santiago Suli Ramirez — Shopping-Cart branch."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "⭐ Ratings & Comments (Guillermo Yepez)",
+      "description": "Feature owner: Guillermo Yepez\nBranch: Ratings-and-Comments\n\nEndpoints for submitting and retrieving book ratings and written comments.\n\nAll endpoints: Sprint 3 🔜",
+      "item": [
+        {
+          "name": "🔜 POST /api/ratings — Submit a rating [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 1,\n  \"score\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ratings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ratings"]
+            },
+            "description": "Submits a star rating (1–5) for a book. One rating per user per book.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Guillermo Yepez — Ratings-and-Comments branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 POST /api/comments — Submit a comment [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"bookId\": 1,\n  \"text\": \"This is a great book on software engineering!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "comments"]
+            },
+            "description": "Submits a written comment for a book. Users can comment multiple times.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Guillermo Yepez — Ratings-and-Comments branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 GET /api/books/:bookId/ratings — Get all ratings for a book [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{sampleBookId}}/ratings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "{{sampleBookId}}", "ratings"]
+            },
+            "description": "Returns all ratings submitted for a specific book.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Guillermo Yepez — Ratings-and-Comments branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 GET /api/books/:bookId/ratings/average — Average rating [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{sampleBookId}}/ratings/average",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "books", "{{sampleBookId}}", "ratings", "average"]
+            },
+            "description": "Returns the average star rating for a specific book.\n\n**Note:** The GET /api/books/isbn/:isbn endpoint already returns averageRating as a computed field. This endpoint provides a dedicated route for fetching only the average.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Guillermo Yepez — Ratings-and-Comments branch."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💝 Wishlist Management (Hiram Torres-Marin)",
+      "description": "Feature owner: Hiram Torres-Marin\nBranch: Wishlist-Management\n\nEndpoints for creating and managing named wishlists.\n\nAll endpoints: Sprint 3 🔜",
+      "item": [
+        {
+          "name": "🔜 POST /api/wishlists — Create a wishlist [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"name\": \"My AI Reading List\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlists",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wishlists"]
+            },
+            "description": "Creates a new named wishlist for a user. A user can have multiple wishlists with different names.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Hiram Torres-Marin — Wishlist-Management branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 POST /api/wishlists/:id/books — Add book to wishlist [Sprint 3]",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlists/{{sampleWishlistId}}/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wishlists", "{{sampleWishlistId}}", "books"]
+            },
+            "description": "Adds a book to a specific wishlist. No duplicate books per wishlist.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Hiram Torres-Marin — Wishlist-Management branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 DELETE /api/wishlists/:id/books/:bookId — Remove or move book [Sprint 3]",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlists/{{sampleWishlistId}}/books/{{sampleBookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wishlists", "{{sampleWishlistId}}", "books", "{{sampleBookId}}"]
+            },
+            "description": "Removes a book from a wishlist (or moves it to the shopping cart).\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Hiram Torres-Marin — Wishlist-Management branch."
+          },
+          "response": []
+        },
+        {
+          "name": "🔜 GET /api/wishlists/:userId — Get all wishlists for a user [Sprint 3]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlists/{{sampleUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wishlists", "{{sampleUserId}}"]
+            },
+            "description": "Returns all wishlists belonging to a user, with the books inside each one.\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Hiram Torres-Marin — Wishlist-Management branch."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
