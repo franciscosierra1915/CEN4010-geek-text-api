@@ -372,6 +372,77 @@
           "response": []
         },
         {
+          "name": "✅ GET /api/authors/:id/books — Retrieve books by author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/authors/{{createdAuthorId}}/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors", "{{createdAuthorId}}", "books"]
+            },
+            "description": "Returns every book written by the given author, including each book's publisher and genre.\n\n**Sprint 3 — Implemented ✅**\n\nImplemented by Francisco Sierra on the `Book-Details` branch (Issue #8).\n\n**Expected response (200 OK):**\n```json\n{\n  \"count\": 2,\n  \"data\": [\n    { \"id\": 5, \"isbn\": \"9780132350884\", \"title\": \"Clean Code\", \"publisher\": {...}, \"genre\": {...} },\n    { \"id\": 9, \"isbn\": \"9780134494166\", \"title\": \"Clean Architecture\", \"publisher\": {...}, \"genre\": {...} }\n  ]\n}\n```\nReturns `{ \"count\": 0, \"data\": [] }` if the author exists but hasn't written any books yet.\n\n**Expected response (404 Not Found):**\n```json\n{ \"error\": \"Author with id 999 not found.\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has count and data fields', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('count');",
+                  "    pm.expect(body).to.have.property('data');",
+                  "    pm.expect(body.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('count matches data length', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.count).to.eql(body.data.length);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "✅ GET /api/authors/:id/books — 404 test (invalid author id)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/authors/999999/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "authors", "999999", "books"]
+            },
+            "description": "Tests that the API correctly returns 404 when no author exists with the given id.\n\n**Expected response (404 Not Found):**\n```json\n{ \"error\": \"Author with id 999999 not found.\" }\n```"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error message is present', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('error');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
           "name": "🔜 PATCH /api/books/:id/price — Update book price [Sprint 3]",
           "request": {
             "method": "PATCH",
