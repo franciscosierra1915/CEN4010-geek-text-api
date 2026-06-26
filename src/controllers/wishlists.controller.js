@@ -39,16 +39,70 @@ const createWishlist = async (req, res) => {
         return res.status(201).json(wishlist);
 
     } catch (error) {
-    console.error(error);
 
     return res.status(500).json({
         message: "Failed to create wishlist",
-        error: error.message
+
     });
 }
 };
 
+const addBookToWishlist = async (req, res) => {
+    try {
+        const { wishlistId } = req.params;
+        const { bookId } = req.body;
+
+        if (!bookId) {
+            return res.status(400).json({
+                message: "Book ID is required"
+            });
+        }
+
+        const wishlist = await prisma.wishlist.findUnique({
+            where: {
+                id: Number(wishlistId)
+            }
+        });
+
+        if (!wishlist) {
+            return res.status(404).json({
+                message: 'Wishlist not found'
+            });
+        }
+
+        const existingItem = await prisma.wishlistItem.findFirst({
+            where: {
+                wishlistId: Number(wishlistId),
+                bookId: Number(bookId)
+            }
+        });
+
+        if (existingItem) {
+            return res.status(409).json({
+                message: 'Book is already in the wishlist'
+            });
+        }
+
+        const wishlistItem = await prisma.wishlistItem.create({
+            data: {
+                wishlistId: Number(wishlistId),
+                bookId: Number(bookId)
+            }
+        });
+
+        return res.status(201).json(wishlistItem);
+
+    } catch (error) {
+
+        return res.status(500).json({
+            message: "Failed to add book to wishlist",
+        });
+    }
+};
+
+
 module.exports = {
     getUserWishlists,
-    createWishlist
+    createWishlist,
+    addBookToWishlist
 };

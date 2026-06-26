@@ -42,6 +42,18 @@ router.post('/', wishlistsCtrl.createWishlist);
  * @see wishlistsCtrl.createWishlist
  */
 
+router.post('/:wishlistId/items', wishlistsCtrl.addBookToWishlist);
+/**
+ * @route   POST /api/wishlists/:wishlistId/items
+ * @summary A book to wishlist.
+ * @access  Public
+ *
+ * The controller add a book to a wishlist for a user based on the
+ * request body.
+ *
+ * @see wishlistsCtrl.addBookToWishlist
+ */
+
 
 /** Export the configured router so server.js can mount it with app.use() */
 module.exports = router;
