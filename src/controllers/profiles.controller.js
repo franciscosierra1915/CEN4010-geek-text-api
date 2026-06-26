@@ -89,16 +89,177 @@ const getUserByUsername = async (req, res) => {
         homeAddress:  true, // returns the profile's hometown
         role: true, // returns the profile's role (e.g., admin, user)
       },
+
     });
+
     if (!user) {
       return res.status(404).json({ error: 'User not found.' });
     }
+
     res.status(200).json(user);
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('getUserByUsername error:', error);
     res.status(500).json({ error: 'Failed to retrieve user.' });
   }
 };
+const updatePassword = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { password } = req.body;
+
+    const saltRounds = 10; // Number of salt rounds for bcrypt
+    const hash = await bcrypt.hash(password, saltRounds); // Hash the new password
+
+    const updatedPassword = await prisma.user.update({
+      where: { username: username },
+      data: {
+       
+        password: hash, // Store the hashed password instead of plain text
+    
+      },
+    });  
+    if (!updatedPassword) {
+    return res.status(404).json({ error: 'User not found.' });
+  } 
+
+  res.status(200).json(updatedPassword);
+  }
+
+   catch (error) {
+    console.error('updatePassword error:', error);
+    res.status(500).json({ error: 'Failed to update password.' });
+
+   }
+  }
+
+  const updateFirstName = async (req, res) => {
+    try {
+      const { username } = req.params;
+      const { firstName } = req.body; 
+
+      const updatedFirstName = await prisma.user.update({
+        where: { username: username },
+        data: {
+          firstName,
+        },
+      });
+
+      if (!updatedFirstName) {
+        return res.status(404).json({ error: 'User not found.' });
+      }
+      res.status(200).json(updatedFirstName);
+    } catch (error) {
+      console.error('updateFirstName error:', error);
+
+      res.status(500).json({ error: 'Failed to update first name.' });
+
+    }
+  }
+
+  const updateLastName = async (req, res) => {
+    try {
+      const { username } = req.params;
+      const { lastName } = req.body;
+
+      const updatedLastName = await prisma.user.update({
+        where: { username: username },
+        data: {
+          lastName,
+        },
+      }); 
+
+      if (!updatedLastName) {
+        return res.status(404).json({ error: 'User not found.' });
+      }
+      res.status(200).json(updatedLastName);
+    }
+    catch (error) {
+      console.error('updateLastName error:', error);
+      res.status(500).json({ error: 'Failed to update last name.' });
+    }
+
+  }
+
+  const updateHomeAddress = async (req, res) => {
+    try {
+      const { username } = req.params;
+      const { homeAddress } = req.body;
+
+      const updatedHomeAddress = await prisma.user.update({
+        where: { username: username },
+        data: {
+          homeAddress,
+        },
+      });
+
+      if (!updatedHomeAddress) {
+        return res.status(404).json({ error: 'User not found.' });
+      }
+      
+      res.status(200).json(updatedHomeAddress);
+    } catch (error) {
+      console.error('updateHomeAddress error:', error);
+      res.status(500).json({ error: 'Failed to update home address.' });
+    }
+
+  }
+
+  const updateRole = async (req, res) => {
+    try {
+      const { username } = req.params;
+      const { role } = req.body;  
+
+      const updatedRole = await prisma.user.update({
+        where: { username: username },
+        data: {
+          role,
+        },
+      });
+
+      if (!updatedRole) {
+        return res.status(404).json({ error: 'User not found.' });
+      }
+      res.status(200).json(updatedRole);
+    }
+    catch (error) {
+      console.error('updateRole error:', error);
+      res.status(500).json({ error: 'Failed to update role.' });
+    }
+  }
+
+  const updateUser = async (req, res) => {
+    try {
+      const { username } = req.params;
+      const { password, firstName, lastName, homeAddress, role } = req.body;  
+
+      const saltRounds = 10; // Number of salt rounds for bcrypt
+      const hash = await bcrypt.hash(password, saltRounds); // Hash the new password
+
+      const updatedUser = await prisma.user.update({
+        where: { username: username },
+        data: {
+
+          password: hash, // Store the hashed password instead of plain text
+          firstName,
+          lastName,
+          homeAddress,
+          role,
+        },
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found.' });
+      } 
+
+      res.status(200).json(updatedUser);
+    }
+    catch (error) {
+      console.error('updateUser error:', error);
+      res.status(500).json({ error: 'Failed to update user.' });
+    }
+  }
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Exports
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,4 +272,10 @@ module.exports = {
   createUser,
   getAllUsers,
   getUserByUsername,
+  updatePassword,
+  updateFirstName,
+  updateLastName,
+  updateHomeAddress,
+  updateRole,
+  updateUser
 };
