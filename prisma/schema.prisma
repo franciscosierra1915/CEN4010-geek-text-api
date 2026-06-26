@@ -106,6 +106,15 @@ model Author {
   /// Short paragraph describing the author's background. Shown on book-detail pages.
   biography String?
 
+  /// Optional foreign key referencing the Publisher associated with this author
+  /// (per Feature Checklist: "Book Details" — create an author with publisher).
+  /// Nullable because existing seeded authors predate this field and a publisher
+  /// is not always known at author-creation time.
+  publisherId Int?
+
+  /// The publisher associated with this author (forward side of the relation). Optional.
+  publisher Publisher? @relation(fields: [publisherId], references: [id])
+
   /// All books written by this author (reverse side of Book.author relation).
   books     Book[]
 }
@@ -124,6 +133,9 @@ model Publisher {
 
   /// All books published by this publisher (reverse side of Book.publisher relation).
   books           Book[]
+
+  /// All authors associated with this publisher (reverse side of Author.publisher relation).
+  authors         Author[]
 }
 
 /// Represents a top-level book category / genre.
