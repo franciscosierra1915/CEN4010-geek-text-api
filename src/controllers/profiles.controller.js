@@ -77,9 +77,9 @@ const getAllUsers = async (req, res) => {
 
 const getUserByUsername = async (req, res) => {
   try {
-    const { userName } = req.params; // Extract the user ID from the URL parameters
+    const { username } = req.params; // Extract the user ID from the URL parameters
     const user = await prisma.user.findUnique({
-      where: { username: userName }, // Find the user by their username (which is unique in our schema)
+      where: { username: username }, // Find the user by their username (which is unique in our schema)
       select: {
         username: true, // returns the profile's username
         email:     true, // returns the profile's email
