@@ -100,9 +100,69 @@ const addBookToWishlist = async (req, res) => {
     }
 };
 
+const moveWishlistBookToCart = async (req, res) => {
+    try {
+        const { wishlistId, bookId } = req.params;
+
+        const result = await prisma.$transaction(async (tx) => {
+
+            const wishlistItem = await tx.wishlistItem.findFirst({
+                where: {
+                    wishlistId: Number(wishlistId),
+                    bookId: Number(bookId)
+                },
+                include: {
+                    wishlist: true
+                }
+            });
+
+            if (!wishlistItem) {
+                throw new Error('Book is not in this wishlist');
+            }
+
+            const book = await tx.book.findUnique({
+                where: {
+                    id: Number(bookId)
+                }
+            });
+
+            if (!book || book.stock <= 0) {
+                throw new Error('Book is out of stock');
+            }
+
+            const cartItem = await tx.cartItem.create({
+                data: {
+                    bookId: Number(bookId),
+                    userId: wishlistItem.wishlist.userId
+                }
+            });
+
+            await tx.wishlistItem.delete({
+                where: {
+                    id: wishlistItem.id
+                }
+            });
+
+            return cartItem;
+
+        });
+
+        return res.status(200).json({
+            message: "Book moved from wishlist to shopping cart successfully",
+            cartItem: result
+        });
+    } catch (error) {
+        return res.status(400).json({
+            message: "Failed to move book to cart",
+            error: error.message
+        });
+    }
+};
 
 module.exports = {
     getUserWishlists,
     createWishlist,
-    addBookToWishlist
+    addBookToWishlist,
+    moveWishlistBookToCart
+
 };
