@@ -88,10 +88,10 @@ app.get('/health', (req, res) => {
 
 app.use('/api/books', ratingsRoutes);
 app.use('/api/books', bookRoutes); // All book-related endpoints (browse, details, CRUD)
+app.use('/api/cart',  cartRoutes); // Add-to-cart, view cart (Sprint 3 — Shopping Cart)
 
 // Uncomment as each sprint's feature is implemented and its branch is merged:
 // app.use('/api/users',     profileRoutes);  // User profile creation and management
-// app.use('/api/cart',      cartRoutes);     // Add-to-cart, update quantity, checkout
 // app.use('/api/ratings',   ratingRoutes);   // Star ratings and written comments
 // app.use('/api/wishlists', wishlistRoutes); // Create wishlists and move items to cart
 
