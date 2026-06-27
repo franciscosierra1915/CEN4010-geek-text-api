@@ -10,7 +10,8 @@ const browsingCtrl = require('../controllers/browsing.controller');
 
 router.get('/genre/:genre', browsingCtrl.getBooksByGenre);
 router.get('/top-sellers', browsingCtrl.getTopSellers);
-// router.get('/rating/:minRating', booksCtrl.getBooksByMinRating);
-// router.get('/publisher/:publisherId', booksCtrl.getBooksByPublisher);
+router.get('/rating/:minRating', browsingCtrl.getBooksByMinRating);
+router.get('/publisher/:publisherId', browsingCtrl.discountBooksByPublisher);
+
 
 module.exports = router;
