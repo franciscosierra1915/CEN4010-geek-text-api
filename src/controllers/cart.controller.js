@@ -32,6 +32,7 @@ const prisma = new PrismaClient();
 
 /**
  * @function getCartByUser
+ * @summary  Fetch all cart items belonging to a specific user, joined with book details.
  * @async
  *
  * Uses Prisma's nested `include` to pull each CartItem along with its parent
