@@ -65,5 +65,18 @@ router.post('/:wishlistId/items/:bookId/move-to-cart', wishlistsCtrl.moveWishlis
  * @see wishlistsCtrl.moveWishlistBookToCart
  */
 
-/** Export the configured router so server.js can mount it with app.use() */
+
+router.get('/wishlist/:wishlistId', wishlistsCtrl.getWishlistById);
+/**
+ * @route   GET /api/wishlists/wishlist/:wishlistId
+ * @summary Retrieve a wishlist by its ID.
+ * @access  Public
+ * The controller retrieves a wishlist by its ID based on the
+ * request body.
+ *
+ * @see wishlistsCtrl.getWishlistById
+ *
+ */
+
+
 module.exports = router;
