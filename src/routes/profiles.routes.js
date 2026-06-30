@@ -14,9 +14,12 @@ router.patch('/:username/lastName', profilesCtrl.updateLastName);
 router.patch('/:username/homeAddress', profilesCtrl.updateHomeAddress);
 router.patch('/:username/role', profilesCtrl.updateRole);
 
-
+router.post('/:username/credit-card', profilesCtrl.createCreditCard);
+router.get('/:username/credit-card', profilesCtrl.getCreditCardsByUsername);
 router.put('/:username', profilesCtrl.updateUser);
 router.get('/:username', profilesCtrl.getUserByUsername);
+
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Exports

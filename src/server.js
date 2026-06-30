@@ -25,7 +25,6 @@ const cors    = require('cors');    // Middleware that adds CORS headers so brow
 const bookRoutes = require('./routes/books.routes');
 const ratingsRoutes = require('./routes/ratings.routes'); 
 const profileRoutes = require('./routes/profiles.routes'); // User profile management routes
-const ratingsRoutes = require('./routes/ratings.routes');
 const authorRoutes = require('./routes/authors.routes'); // Issue #7 — Book Details: Create author
 
 // Future sprint routes — uncomment each line as the corresponding feature branch is merged:

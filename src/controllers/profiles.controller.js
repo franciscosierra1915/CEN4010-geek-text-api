@@ -260,6 +260,56 @@ const updatePassword = async (req, res) => {
     }
   }
 
+  const createCreditCard = async (req, res) => {
+    try {
+      const { username } = req.params;
+
+      const{cardholderName,lastFour,cardType,expirationMonth,expirationYear} = req.body;
+      
+
+      const newCreditCard = await prisma.creditCard.create({
+        data: {
+          cardholderName,
+          lastFour,
+          cardType,
+          expirationMonth,
+          expirationYear,
+          user: {
+            connect: { username: username }, // Connect the credit card to the user by username
+          },
+        },
+      });
+      
+    }
+    catch (error) {
+      console.error('createCreditCard error:', error);
+      res.status(500).json({ error: 'Failed to create credit card.' });
+    }
+    res.status(201).json({ message: 'Credit card created successfully.' });
+
+
+  }
+
+  const getCreditCardsByUsername = async (req, res) => {
+    try {
+      const { username } = req.params;
+
+      const creditCards = await prisma.creditCard.findMany({
+        where: {
+          user: {
+            username: username, // Filter credit cards by the associated user's username
+          },
+        },
+      });
+
+      res.status(200).json(creditCards);
+    }
+    catch (error) {
+      console.error('getCreditCardsByUsername error:', error);
+      res.status(500).json({ error: 'Failed to fetch credit cards.' });
+    }
+  }
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Exports
 // ─────────────────────────────────────────────────────────────────────────────
@@ -277,5 +327,7 @@ module.exports = {
   updateLastName,
   updateHomeAddress,
   updateRole,
-  updateUser
+  updateUser,
+  createCreditCard,
+  getCreditCardsByUsername,
 };
