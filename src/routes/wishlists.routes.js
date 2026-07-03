@@ -54,9 +54,9 @@ router.post('/:wishlistId/items', wishlistsCtrl.addBookToWishlist);
  * @see wishlistsCtrl.addBookToWishlist
  */
 
-router.post('/:wishlistId/items/:bookId/move-to-cart', wishlistsCtrl.moveWishlistBookToCart);
+router.delete('/:wishlistId/items/:bookId/move-to-cart', wishlistsCtrl.moveWishlistBookToCart);
 /**
- * @route   POST /api/wishlists/:wishlistId/items/:bookId/move-to-cart
+ * @route   DELETE /api/wishlists/:wishlistId/items/:bookId/move-to-cart
  * @summary Move a book from a wishlist to the user's cart.
  * @access  Public
  * The controller moves a book from a wishlist to the user's cart based on the

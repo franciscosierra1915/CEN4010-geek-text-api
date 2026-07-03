@@ -155,8 +155,9 @@ const moveWishlistBookToCart = async (req, res) => {
 
             const cartItem = await tx.cartItem.create({
                 data: {
+                    userId: wishlistItem.wishlist.userId,
                     bookId: Number(bookId),
-                    userId: wishlistItem.wishlist.userId
+                    quantity: 1
                 }
             });
 
@@ -170,10 +171,7 @@ const moveWishlistBookToCart = async (req, res) => {
 
         });
 
-        return res.status(200).json({
-            message: "Book moved from wishlist to shopping cart successfully",
-            cartItem: result
-        });
+        return res.status(204).send();
     } catch (error) {
         return res.status(400).json({
             message: "Failed to move book to cart",
