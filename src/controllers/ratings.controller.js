@@ -25,18 +25,79 @@ const getBookRatings = async (req, res) => {
   const { bookId } = req.params;
 
   try {
-    // Sprint 2 placeholder response as requested by instructions
-    return res.json({ 
-      message: "getBookRatings - coming soon",
-      requestedBookId: bookId 
+ 
+   const parsedBookId = parseInt(bookId, 10);
+
+   //Display of individual Ratings
+   const individualRatings = await prisma.rating.findMany({
+      where: { bookId: parsedBookId },
+      select: {
+        id: true,
+        score: true,
+        userId: true,
+        user: {
+          select: { username: true }
+        }
+      },
+      orderBy: { id: "desc" }
     });
+
+    return res.status(200).json({
+      bookId: parsedBookId,
+      data: individualRatings
+    });
+
   } catch (error) {
     console.error('getBookRatings error:', error);
-    res.status(500).json({ error: 'Failed to retrieve ratings.' });
+    return res.status(500).json({ error: 'Failed to retrieve ratings data.' });
   }
 };
 
 /**
+<<<<<<< HEAD
+=======
+ * @function getBookAverageRating
+ * @summary Dedicated calculation service pooling scores mathematically to format a clean decimal.
+ * @async
+ * @param {import('express').Request} req - Express request object. Expects bookId param.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {JSON} Computed storefront mathematical aggregation statistics.
+ */
+
+
+const getBookAverageRating = async (req, res) => {
+  const { bookId } = req.params;
+
+  try {
+    const parsedBookId = parseInt(bookId, 10);
+
+    const aggregation = await prisma.rating.aggregate({
+      where: { bookId: parsedBookId },
+      _avg: { score: true },
+      _count: { score: true },
+    });
+
+    // Fallback logic assignment in case the target book has zero recorded scores
+    const rawAverage = aggregation._avg.score || 0;
+    const totalRatings = aggregation._count.score || 0;
+
+    // Deliverable: Truncate trailing floating-point decimals into clean string format, then parse back to float
+    const formattedAverage = parseFloat(rawAverage.toFixed(1));
+
+    return res.status(200).json({
+      bookId: parsedBookId,
+      averageRating: formattedAverage,
+      totalRatings: totalRatings
+    });
+
+  } catch (error) {
+    console.error('getBookAverageRating error:', error);
+    return res.status(500).json({ error: 'Failed to compute average rating.' });
+  }
+};
+
+/**
+>>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
  * @function addOrUpdateRating
  * @summary  Create a new book rating or overwrite an existing one for a specific user.
  * @async
@@ -62,7 +123,11 @@ const addOrUpdateRating = async (req, res) => {
 
   try {
     // ── Uniqueness Constraint & Database Logic ──────────────────────────────
+<<<<<<< HEAD
     // Prisma's upsert intelligently handles updates vs insertions automatically.
+=======
+    // Prisma's upsert handles updates vs insertions automatically.
+>>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
     const rating = await prisma.rating.upsert({
       where: {
         // Matches the unique compound index defined in schema.prisma
@@ -142,6 +207,10 @@ const getBookComment = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
+<<<<<<< HEAD
+=======
+    //Display aspect for comments
+>>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
     const comments = await prisma.comment.findMany({
       where: {
         bookId: parseInt(bookId, 10)
@@ -163,6 +232,10 @@ const getBookComment = async (req, res) => {
       take: limit
     });
 
+<<<<<<< HEAD
+=======
+    //Counter of Books total comments
+>>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
     const totalComments = await prisma.comment.count({ 
       where: { bookId: parseInt(bookId, 10) }
     });
@@ -181,9 +254,18 @@ const getBookComment = async (req, res) => {
     return res.status(500).json({ error: "Internal server error fetching comments." });
   }
 };
+<<<<<<< HEAD
 // ── Module Exports ───────────────────────────────────────────────────────────
 module.exports = {
   getBookRatings,
+=======
+
+
+// ── Module Exports ───────────────────────────────────────────────────────────
+module.exports = {
+  getBookRatings,
+  getBookAverageRating,
+>>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
   addOrUpdateRating,
   addOrUpdateComment,
   getBookComment,
