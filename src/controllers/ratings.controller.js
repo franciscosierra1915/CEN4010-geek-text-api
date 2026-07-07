@@ -3,12 +3,6 @@
  * @description Controller functions for all Book Rating and Comment API endpoints.
  * @module controllers/ratings
  */
-/*
-const { PrismaClient } = require('@prisma/client');
-const e = require('express');
-// const { use } = require('react'); Created Issues with creating comment task
-const prisma = new PrismaClient();
-*/
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -25,11 +19,10 @@ const getBookRatings = async (req, res) => {
   const { bookId } = req.params;
 
   try {
- 
-   const parsedBookId = parseInt(bookId, 10);
+    const parsedBookId = parseInt(bookId, 10);
 
-   //Display of individual Ratings
-   const individualRatings = await prisma.rating.findMany({
+    // Display of individual Ratings
+    const individualRatings = await prisma.rating.findMany({
       where: { bookId: parsedBookId },
       select: {
         id: true,
@@ -54,8 +47,6 @@ const getBookRatings = async (req, res) => {
 };
 
 /**
-<<<<<<< HEAD
-=======
  * @function getBookAverageRating
  * @summary Dedicated calculation service pooling scores mathematically to format a clean decimal.
  * @async
@@ -63,8 +54,6 @@ const getBookRatings = async (req, res) => {
  * @param {import('express').Response} res - Express response object.
  * @returns {JSON} Computed storefront mathematical aggregation statistics.
  */
-
-
 const getBookAverageRating = async (req, res) => {
   const { bookId } = req.params;
 
@@ -97,7 +86,6 @@ const getBookAverageRating = async (req, res) => {
 };
 
 /**
->>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
  * @function addOrUpdateRating
  * @summary  Create a new book rating or overwrite an existing one for a specific user.
  * @async
@@ -106,41 +94,34 @@ const getBookAverageRating = async (req, res) => {
  * @returns {void} Sends HTTP 201 on success, 400 on validation failure, or 500 on server error.
  */
 const addOrUpdateRating = async (req, res) => {
-  // Pulling all variables from req.body to match the POST /api/ratings Postman structure
   const { score, userId, bookId } = req.body; 
 
   // ── Validation Rules ──────────────────────────────────────────────────────
-  // 1. Check if all fields were provided in the body
   if (score === undefined || userId === undefined || bookId === undefined) {
     return res.status(400).json({ error: 'Missing required fields: score, userId, and bookId are required.' });
   }
 
-  // 2. Enforce integer restriction and scale limits (1 to 5)
+  // Handle both string numbers from forms/Postman and strict integers safely
   const parsedScore = parseInt(score, 10);
-  if (!Number.isInteger(score) || parsedScore < 1 || parsedScore > 5) {
+  if (isNaN(parsedScore) || parsedScore < 1 || parsedScore > 5) {
     return res.status(400).json({ error: 'Validation failed: Score must be an integer between 1 and 5.' });
   }
 
   try {
     // ── Uniqueness Constraint & Database Logic ──────────────────────────────
-<<<<<<< HEAD
-    // Prisma's upsert intelligently handles updates vs insertions automatically.
-=======
     // Prisma's upsert handles updates vs insertions automatically.
->>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
     const rating = await prisma.rating.upsert({
       where: {
-        // Matches the unique compound index defined in schema.prisma
         userId_bookId: {
           userId: parseInt(userId, 10),
           bookId: parseInt(bookId, 10),
         },
       },
       update: {
-        score: parsedScore, // Uniqueness Constraint: subsequent attempts overwrite the old rating
+        score: parsedScore, 
       },
       create: {
-        userId: parseInt(userId, 10), // First-time rating: create a brand new database record
+        userId: parseInt(userId, 10), 
         bookId: parseInt(bookId, 10),
         score: parsedScore,
       },
@@ -163,15 +144,16 @@ const addOrUpdateRating = async (req, res) => {
  */
 const addOrUpdateComment = async (req, res) => {
   const { text, userId, bookId } = req.body;
-// ── Validation Rules ──────────────────────────────────────────────────────  
-  if (!text || userId === undefined ||  bookId === undefined) {
+
+  // ── Validation Rules ──────────────────────────────────────────────────────  
+  if (!text || userId === undefined || bookId === undefined) {
     return res.status(400).json({ error: 'Missing required fields: text, userId, and bookId are required.' });
   }
-  if (typeof text != 'string' || text.trim() == '') {
+  if (typeof text !== 'string' || text.trim() === '') {
     return res.status(400).json({ error: 'Validation failed: Comment text cannot be empty.' });
   }
 
-  try{
+  try {
     const sanitizedText = validator.escape(text.trim());
 
     const comment = await prisma.comment.create({
@@ -186,9 +168,9 @@ const addOrUpdateComment = async (req, res) => {
       message: 'Comment posted successfully.',
       data: comment,
     });
-  } catch(error){
+  } catch (error) {
     console.error("addOrUpdateComment error: ", error);
-    return res.status(500).json({error: 'Failed to save comment due to a server error.'});
+    return res.status(500).json({ error: 'Failed to save comment due to a server error.' });
   }
 };
 
@@ -197,7 +179,6 @@ const addOrUpdateComment = async (req, res) => {
  * @summary  Fetch sorted, paginated comments for a specific book.
  * @async
  */
-
 const getBookComment = async (req, res) => {
   try {
     const { bookId } = req.params;
@@ -207,10 +188,7 @@ const getBookComment = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-<<<<<<< HEAD
-=======
-    //Display aspect for comments
->>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
+    // Display aspect for comments
     const comments = await prisma.comment.findMany({
       where: {
         bookId: parseInt(bookId, 10)
@@ -232,10 +210,7 @@ const getBookComment = async (req, res) => {
       take: limit
     });
 
-<<<<<<< HEAD
-=======
-    //Counter of Books total comments
->>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
+    // Counter of Books total comments
     const totalComments = await prisma.comment.count({ 
       where: { bookId: parseInt(bookId, 10) }
     });
@@ -254,18 +229,11 @@ const getBookComment = async (req, res) => {
     return res.status(500).json({ error: "Internal server error fetching comments." });
   }
 };
-<<<<<<< HEAD
-// ── Module Exports ───────────────────────────────────────────────────────────
-module.exports = {
-  getBookRatings,
-=======
-
 
 // ── Module Exports ───────────────────────────────────────────────────────────
 module.exports = {
   getBookRatings,
   getBookAverageRating,
->>>>>>> 15d34c2 (feat: complete sprint 3 book rating and commenting features)
   addOrUpdateRating,
   addOrUpdateComment,
   getBookComment,
