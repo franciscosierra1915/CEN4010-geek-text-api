@@ -259,6 +259,157 @@ const addBookToCart = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  getCartSubtotal
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @function getCartSubtotal
+ * @summary  Return only the calculated subtotal price for a user's cart.
+ * @async
+ *
+ * Implements Feature 3 · Action 1 from the project spec: "Retrieve the
+ * subtotal price of all items in the user's shopping cart." The spec
+ * requires this to be its own separate API route (see project brief:
+ * "Each API Action is its own separate API route"), so this function
+ * intentionally returns only the calculated number rather than the full
+ * cart listing produced by getCartByUser.
+ *
+ * The subtotal reflects each item's quantity multiplied by the book's
+ * price after the publisher's discount is applied, matching the pricing
+ * logic used by the retrieve-cart endpoint so the two never disagree.
+ *
+ * @param {import('express').Request}  req               - Express request object.
+ * @param {string}                     req.params.userId - The user ID extracted from the URL path.
+ * @param {import('express').Response} res               - Express response object used to send the reply.
+ *
+ * @returns {void} Sends one of:
+ *   - HTTP 200 with `{ userId, subtotal }` on success. `subtotal` is 0 when the cart is empty.
+ *   - HTTP 400 with `{ error: string }` if the userId path param is not a valid integer.
+ *   - HTTP 404 with `{ error: string }` if no user exists with the given id.
+ *   - HTTP 500 with `{ error: string }` if the database query fails.
+ *
+ * @example
+ * // GET /api/cart/1/subtotal → 200
+ * { "userId": 1, "subtotal": 142.47 }
+ */
+const getCartSubtotal = async (req, res) => {
+  // ── 1. Parse and validate the userId path param ─────────────────────────
+  const userId = Number.parseInt(req.params.userId, 10);
+  if (Number.isNaN(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'A valid userId is required in the URL path.' });
+  }
+
+  try {
+    // ── 2. Confirm the user exists ────────────────────────────────────────
+    // Same distinction as getCartByUser: "empty cart" (200 with 0) differs
+    // from "user does not exist" (404).
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: `User with id ${userId} not found.` });
+    }
+
+    // ── 3. Pull only what's needed to compute money ───────────────────────
+    // We deliberately do NOT include author or coverImage here — this
+    // endpoint's contract is "return the subtotal," so we skip the joins
+    // that the list endpoint needs. Publisher is still required for the
+    // discount percentage.
+    const cartItems = await prisma.cartItem.findMany({
+      where: { userId },
+      include: {
+        book: {
+          include: { publisher: true },
+        },
+      },
+    });
+
+    // ── 4. Sum every line total after applying the publisher discount ────
+    const round2   = (n) => Math.round(n * 100) / 100;
+    const subtotal = round2(
+      cartItems.reduce((sum, ci) => {
+        const discounted = ci.book.price * (1 - ci.book.publisher.discountPercent / 100);
+        return sum + discounted * ci.quantity;
+      }, 0),
+    );
+
+    return res.status(200).json({ userId, subtotal });
+  } catch (error) {
+    console.error('getCartSubtotal error:', error);
+    return res.status(500).json({ error: 'Failed to calculate cart subtotal.' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  removeBookFromCart
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @function removeBookFromCart
+ * @summary  Delete a single book from a user's shopping cart.
+ * @async
+ *
+ * Implements Feature 3 · Action 4 from the project spec: "Delete a book
+ * from the shopping cart instance for that user." The spec passes book id
+ * and user id; both are taken from the URL path here so the operation is
+ * fully addressable (RESTful) and idempotent.
+ *
+ * A quantity is NOT decremented — the spec calls for removing the book
+ * from the cart entirely, so the whole CartItem row is deleted regardless
+ * of how many copies were in it.
+ *
+ * @param {import('express').Request}  req               - Express request object.
+ * @param {string}                     req.params.userId - The user ID from the URL path.
+ * @param {string}                     req.params.bookId - The book ID from the URL path.
+ * @param {import('express').Response} res               - Express response object used to send the reply.
+ *
+ * @returns {void} Sends one of:
+ *   - HTTP 204 with no body on successful deletion (matches spec: "Response Data: None").
+ *   - HTTP 400 with `{ error: string }` if userId/bookId are not valid integers.
+ *   - HTTP 404 with `{ error: string }` if no cart item exists for that (user, book) pair.
+ *   - HTTP 500 with `{ error: string }` if the database operation fails.
+ *
+ * @example
+ * // DELETE /api/cart/1/items/3 → 204 No Content (empty body)
+ */
+const removeBookFromCart = async (req, res) => {
+  // ── 1. Parse and validate both path params ──────────────────────────────
+  const userId = Number.parseInt(req.params.userId, 10);
+  const bookId = Number.parseInt(req.params.bookId, 10);
+
+  if (Number.isNaN(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'A valid userId is required in the URL path.' });
+  }
+  if (Number.isNaN(bookId) || bookId <= 0) {
+    return res.status(400).json({ error: 'A valid bookId is required in the URL path.' });
+  }
+
+  try {
+    // ── 2. Delete by the compound unique key ──────────────────────────────
+    // Using `delete` (not `deleteMany`) lets us distinguish "no such item"
+    // from a successful delete — Prisma throws P2025 when the row is not
+    // found, which we translate into a 404 for the client.
+    await prisma.cartItem.delete({
+      where: { userId_bookId: { userId, bookId } },
+    });
+
+    // 204 No Content is the correct success code when the response has no
+    // body. Matches the spec's "Response Data: None" requirement literally.
+    return res.status(204).send();
+  } catch (error) {
+    // P2025 = "An operation failed because it depends on one or more
+    // records that were required but not found." Prisma's canonical
+    // not-found code — mapped to a friendlier 404 here.
+    if (error.code === 'P2025') {
+      return res.status(404).json({
+        error: `No cart item found for user ${userId} and book ${bookId}.`,
+      });
+    }
+
+    console.error('removeBookFromCart error:', error);
+    return res.status(500).json({ error: 'Failed to remove book from cart.' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  Exports
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -269,4 +420,6 @@ const addBookToCart = async (req, res) => {
 module.exports = {
   getCartByUser,
   addBookToCart,
+  getCartSubtotal,
+  removeBookFromCart,
 };
