@@ -10,11 +10,19 @@
     "prisma:migrate": "npx prisma migrate dev",
     "prisma:seed": "node prisma/seed.js"
   },
-  "keywords": ["rest-api", "express", "prisma", "postgresql", "bookstore", "nodejs"],
+  "keywords": [
+    "rest-api",
+    "express",
+    "prisma",
+    "postgresql",
+    "bookstore",
+    "nodejs"
+  ],
   "author": "Group 9 — GeekText Architects, Florida International University",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
