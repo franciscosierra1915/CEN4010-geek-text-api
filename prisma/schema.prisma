@@ -1,0 +1,363 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  prisma/schema.prisma
+//  Geek Text API — Database Schema
+//
+//  This file is the single source of truth for the database structure.
+//  Prisma reads it to:
+//    1. Generate the type-safe PrismaClient used throughout the codebase.
+//    2. Create and apply SQL migrations (npx prisma migrate dev).
+//    3. Power Prisma Studio's visual database browser.
+//
+//  To apply changes:
+//    npx prisma migrate dev --name <description>   → create + run a new migration
+//    npx prisma generate                           → regenerate the Prisma Client
+//
+//  Models map one-to-one to PostgreSQL tables.
+//  Relations are declared on both sides so Prisma can traverse them in either direction.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Generator ─────────────────────────────────────────────────────────────────
+// Tells Prisma which client library to generate. "prisma-client-js" is the
+// standard Node.js/TypeScript client that gets placed in node_modules/@prisma/client.
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ── Datasource ────────────────────────────────────────────────────────────────
+// Declares that we are connecting to PostgreSQL.
+// The connection string is read from the DATABASE_URL environment variable
+// defined in the .env file — never hardcoded in source control.
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  BOOK CATALOG MODELS
+//  Core entities for the bookstore: the book itself, its author, publisher,
+//  and the genre it belongs to.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Represents a single book available for sale in the Geek Text catalog.
+/// Every book belongs to exactly one Author, one Publisher, and one Genre.
+model Book {
+  /// Auto-incrementing surrogate primary key.
+  id            Int    @id @default(autoincrement())
+
+  /// 13-digit International Standard Book Number. Must be unique across all books.
+  isbn          String @unique
+
+  /// Full display title of the book.
+  title         String
+
+  /// Multi-sentence marketing description shown on the book-detail page.
+  description   String
+
+  /// Current retail price in USD (e.g. 49.99).
+  price         Float
+
+  /// The year this edition was originally published.
+  yearPublished Int
+
+  /// Total copies sold since the book was listed. Used by the top-sellers feature.
+  copiesSold    Int    @default(0)
+
+  /// Optional URL or file path to the book's cover image. Null when no cover is uploaded.
+  coverImage    String?
+
+  // ── Foreign Keys ────────────────────────────────────────────────────────────
+  /// Foreign key referencing the Author who wrote this book.
+  authorId    Int
+  /// Foreign key referencing the Publisher who published this book.
+  publisherId Int
+  /// Foreign key referencing the Genre this book belongs to.
+  genreId     Int
+
+  // ── Relations ────────────────────────────────────────────────────────────────
+  // These fields do not create extra columns — they are Prisma-level pointers
+  // that enable .include({ author: true }) style queries.
+  author    Author    @relation(fields: [authorId],    references: [id])
+  publisher Publisher @relation(fields: [publisherId], references: [id])
+  genre     Genre     @relation(fields: [genreId],     references: [id])
+
+  // ── Reverse Relations ─────────────────────────────────────────────────────
+  // Arrays of related records. Prisma fills these when include: { ratings: true } etc. is used.
+  ratings       Rating[]       // All star ratings this book has received
+  comments      Comment[]      // All written reviews for this book
+  cartItems     CartItem[]     // Cart entries referencing this book
+  wishlistItems WishlistItem[] // Wishlist entries referencing this book
+
+  // ── Timestamps ─────────────────────────────────────────────────────────────
+  createdAt DateTime @default(now())  // Set automatically when the row is first inserted
+  updatedAt DateTime @updatedAt       // Updated automatically by Prisma on every write
+}
+
+/// Represents a book author. One author can write many books.
+model Author {
+  /// Auto-incrementing surrogate primary key.
+  id        Int     @id @default(autoincrement())
+
+  /// Author's given name (e.g. "Robert").
+  firstName String
+
+  /// Author's family name (e.g. "Martin").
+  lastName  String
+
+  /// Short paragraph describing the author's background. Shown on book-detail pages.
+  biography String?
+
+  /// Optional foreign key referencing the Publisher associated with this author
+  /// (per Feature Checklist: "Book Details" — create an author with publisher).
+  /// Nullable because existing seeded authors predate this field and a publisher
+  /// is not always known at author-creation time.
+  publisherId Int?
+
+  /// The publisher associated with this author (forward side of the relation). Optional.
+  publisher Publisher? @relation(fields: [publisherId], references: [id])
+
+  /// All books written by this author (reverse side of Book.author relation).
+  books     Book[]
+}
+
+/// Represents a publishing company. One publisher can publish many books.
+model Publisher {
+  /// Auto-incrementing surrogate primary key.
+  id              Int    @id @default(autoincrement())
+
+  /// Official publisher name. Must be unique (e.g. "O'Reilly Media").
+  name            String @unique
+
+  /// Percentage discount applied to all books from this publisher (e.g. 10.0 = 10% off).
+  /// Used by the Book Browsing feature when filtering by publisher.
+  discountPercent Float  @default(0)
+
+  /// All books published by this publisher (reverse side of Book.publisher relation).
+  books           Book[]
+
+  /// All authors associated with this publisher (reverse side of Author.publisher relation).
+  authors         Author[]
+}
+
+/// Represents a top-level book category / genre.
+model Genre {
+  /// Auto-incrementing surrogate primary key.
+  id    Int    @id @default(autoincrement())
+
+  /// Unique category name (e.g. "Software Engineering", "Cybersecurity").
+  name  String @unique
+
+  /// All books that belong to this genre (reverse side of Book.genre relation).
+  books Book[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  USER & PROFILE MANAGEMENT MODELS
+//  Stores registered customers and their payment methods.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Represents a registered Geek Text customer.
+/// One user can own a cart, multiple wishlists, ratings, comments, and credit cards.
+model User {
+  /// Auto-incrementing surrogate primary key.
+  id          Int     @id @default(autoincrement())
+
+  /// Unique login handle chosen by the user (e.g. "alice_dev").
+  username    String  @unique
+
+  /// Unique email address used for login and notifications.
+  email       String  @unique
+
+  /// Hashed password. ⚠️ Must be bcrypt-hashed in production — never store plaintext.
+  password    String
+
+  /// User's first name. Optional — may be set later via profile update.
+  firstName   String?
+
+  /// User's last name. Optional — may be set later via profile update.
+  lastName    String?
+
+  /// Primary shipping address. Optional — collected during first checkout.
+  homeAddress String?
+
+  /// Access-control role. "USER" for standard customers, "ADMIN" for store managers.
+  role        String  @default("USER")
+
+  // ── Reverse Relations ─────────────────────────────────────────────────────
+  cartItems   CartItem[]    // Books this user has added to their shopping cart
+  wishlists   Wishlist[]    // Named wishlists created by this user
+  ratings     Rating[]      // Star ratings this user has submitted
+  comments    Comment[]     // Written reviews this user has posted
+  creditCards CreditCard[]  // Payment methods saved to this user's account
+
+  // ── Timestamps ─────────────────────────────────────────────────────────────
+  createdAt DateTime @default(now())  // Account creation timestamp
+  updatedAt DateTime @updatedAt       // Last profile-update timestamp
+}
+
+/// Stores a saved payment method for a user.
+/// Only the last four digits of the card number are persisted — never the full PAN.
+/// This is required for PCI-DSS compliance.
+model CreditCard {
+  /// Auto-incrementing surrogate primary key.
+  id              Int    @id @default(autoincrement())
+
+  /// Foreign key referencing the user who owns this card.
+  userId          Int
+
+  /// Name exactly as it appears on the physical card (e.g. "Alice Johnson").
+  cardholderName  String
+
+  /// Last four digits of the card number only (e.g. "4242").
+  /// The full card number must NEVER be stored.
+  lastFour        String
+
+  /// Card network / type. Accepted values: "Visa", "Mastercard", "Amex", "Discover".
+  cardType        String
+
+  /// Month the card expires (1–12).
+  expirationMonth Int
+
+  /// Four-digit year the card expires (e.g. 2027).
+  expirationYear  Int
+
+  /// The user who owns this card (forward side of the relation).
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SHOPPING CART MODEL
+//  Represents a user's current, unpurchased selection of books.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A single line item in a user's shopping cart.
+/// The pair (userId, bookId) is unique — adding the same book again increases quantity instead.
+model CartItem {
+  /// Auto-incrementing surrogate primary key.
+  id       Int @id @default(autoincrement())
+
+  /// Foreign key referencing the user whose cart this item belongs to.
+  userId   Int
+
+  /// Foreign key referencing the book being purchased.
+  bookId   Int
+
+  /// Number of copies the user wants to buy. Defaults to 1.
+  quantity Int @default(1)
+
+  /// The user who owns this cart item.
+  user User @relation(fields: [userId], references: [id])
+
+  /// The book being added to the cart.
+  book Book @relation(fields: [bookId], references: [id])
+
+  /// Prevents the same book from appearing twice as separate rows in one user's cart.
+  @@unique([userId, bookId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  WISHLIST MANAGEMENT MODELS
+//  Users can create multiple named wishlists and save books to each one.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A named collection of books saved by a user for future reference.
+/// One user can have many wishlists, each with a unique name.
+model Wishlist {
+  /// Auto-incrementing surrogate primary key.
+  id     Int    @id @default(autoincrement())
+
+  /// Foreign key referencing the user who created this wishlist.
+  userId Int
+
+  /// Display name for this wishlist (e.g. "Birthday Ideas", "DevOps Must-Haves").
+  name   String
+
+  /// The user who owns this wishlist.
+  user  User           @relation(fields: [userId], references: [id])
+
+  /// All books saved to this wishlist.
+  items WishlistItem[]
+
+  /// A user cannot have two wishlists with the same name.
+  @@unique([userId, name])
+}
+
+/// A single book entry within a wishlist.
+/// The pair (wishlistId, bookId) is unique — a book cannot appear twice in the same list.
+model WishlistItem {
+  /// Auto-incrementing surrogate primary key.
+  id         Int @id @default(autoincrement())
+
+  /// Foreign key referencing the parent wishlist.
+  wishlistId Int
+
+  /// Foreign key referencing the book saved to the wishlist.
+  bookId     Int
+
+  /// The wishlist this item belongs to.
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
+
+  /// The book saved in this wishlist entry.
+  book     Book     @relation(fields: [bookId],     references: [id])
+
+  /// Prevents duplicate books within a single wishlist.
+  @@unique([wishlistId, bookId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  BOOK RATING & COMMENTING MODELS
+//  Allow users to leave star ratings and written reviews on books they've read.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A star rating submitted by a user for a specific book.
+/// Each user can rate a given book only once (enforced by the unique constraint).
+model Rating {
+  /// Auto-incrementing surrogate primary key.
+  id         Int      @id @default(autoincrement())
+
+  /// Foreign key referencing the user who submitted this rating.
+  userId     Int
+
+  /// Foreign key referencing the book being rated.
+  bookId     Int
+
+  /// The star score, from 1 (lowest) to 5 (highest).
+  score      Int
+
+  /// Timestamp when the rating was first submitted. Defaults to the current time.
+  datePosted DateTime @default(now())
+
+  /// The user who submitted this rating.
+  user User @relation(fields: [userId], references: [id])
+
+  /// The book this rating applies to.
+  book Book @relation(fields: [bookId], references: [id])
+
+  /// Enforces one rating per user per book — a user cannot rate the same book twice.
+  @@unique([userId, bookId])
+}
+
+/// A written review / comment submitted by a user on a specific book.
+/// Unlike ratings, there is no unique constraint — a user may post multiple
+/// comments on the same book (though the seed data has one per pair for clarity).
+model Comment {
+  /// Auto-incrementing surrogate primary key.
+  id         Int      @id @default(autoincrement())
+
+  /// Foreign key referencing the user who wrote this comment.
+  userId     Int
+
+  /// Foreign key referencing the book being reviewed.
+  bookId     Int
+
+  /// The full text of the written review.
+  text       String
+
+  /// Timestamp when the comment was posted. Defaults to the current time.
+  datePosted DateTime @default(now())
+
+  /// The user who posted this comment. Only id and username are exposed by the API.
+  user User @relation(fields: [userId], references: [id])
+
+  /// The book this comment is about.
+  book Book @relation(fields: [bookId], references: [id])
+}
