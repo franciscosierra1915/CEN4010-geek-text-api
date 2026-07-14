@@ -1,0 +1,32 @@
+## Book Rating & Commenting Feature
+
+Provides comprehensive endpoints for users to rate books on a 5-star scale and leave text-based reviews/comments.
+
+### API Endpoints
+
+#### GET Endpoints
+* **Calculate Average Rating**
+  * `GET /api/books/:bookId/ratings/average`
+  * *Description:* Calculates the strict decimal average rating for a specific book.
+* **Retrieve All Ratings**
+  * `GET /api/books/:bookId/ratings`
+  * *Description:* Retrieves all individual user rating records for a given book.
+* **Retrieve Comments**
+  * `GET /api/books/:bookId/comments`
+  * *Description:* Retrieves a sorted, paginated list of all text reviews/comments left for a book.
+
+#### POST Endpoints
+* **Add or Update Rating**
+  * `POST /api/ratings`
+  * *Description:* Creates a new rating or updates an existing rating for a user on a 1-5 star scale.
+* **Add or Update Comment**
+  * `POST /api/comments`
+  * *Description:* Creates or updates a text-based book review/comment.
+
+---
+
+### Database Schema Integration (Prisma)
+
+The feature utilizes the centralized relational schema via Prisma, implementing core data relations across:
+* **Book / Rating Relation:** Map individual and aggregated evaluation scores to target titles.
+* **User / Comment Relation:** Associate text reviews with active user accounts while handling updates cleanly.
