@@ -23,7 +23,8 @@ const cors    = require('cors');    // Middleware that adds CORS headers so brow
 // ── Route Imports ────────────────────────────────────────────────────────────
 // Each feature area lives in its own router file under src/routes/.
 const bookRoutes = require('./routes/books.routes');
-const ratingsRoutes = require('./routes/ratings.routes');
+const ratingsRoutes = require('./routes/ratings.routes'); 
+const profileRoutes = require('./routes/profiles.routes'); // User profile management routes
 const authorRoutes = require('./routes/authors.routes'); // Issue #7 — Book Details: Create author
 const browsingRoutes = require('./routes/browsing.routes');
 
@@ -90,6 +91,7 @@ app.get('/health', (req, res) => {
 
 
 app.use('/api/books', bookRoutes); // All book-related endpoints (browse, details, CRUD)
+app.use('/api/users', profileRoutes); // User profile creation and management
 app.use('/api/authors', authorRoutes); // Author creation (Book Details — admin feature)
 app.use('/api/books', browsingRoutes);
 
