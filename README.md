@@ -556,6 +556,14 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 |---|---|---|
 | `GET` | `/api/books` | Returns a list of all 30 books with author, publisher, and genre info. |
 | `GET` | `/api/books/isbn/:isbn` | Returns a single book by ISBN with ratings, comments, and average rating. Replace `:isbn` with an actual ISBN, e.g. `/api/books/isbn/9780132350884`. |
+| `POST` | `/api/books` | Book Details (admin) — creates a new book. Requires isbn, title, description, price, yearPublished, authorId, genreId, publisherId. |
+
+### Authors
+
+| Method | URL | Description |
+|---|---|---|
+| `POST` | `/api/authors` | Book Details (admin) — creates a new author. Requires firstName, lastName; biography and publisherId optional. |
+| `GET` | `/api/authors/:id/books` | Book Details — returns every book written by the given author, with publisher and genre info. Returns 404 if the author doesn't exist, or `{ count: 0, data: [] }` if they exist but have no books yet. |
 
 ### Planned Endpoints (Sprint 3+)
 
@@ -567,7 +575,6 @@ These will be added by each feature team in their respective branches:
 | `GET` | `/api/books/top-sellers` | Book Browsing — top 10 by copies sold |
 | `GET` | `/api/books/rating/:minRating` | Book Browsing — filter by minimum rating |
 | `GET` | `/api/books/publisher/:publisherId` | Book Browsing — filter by publisher |
-| `POST` | `/api/books` | Book Details — create a new book |
 | `GET` | `/api/users/:id` | Profile Management — get user profile |
 | `POST` | `/api/users` | Profile Management — create user |
 | `GET` | `/api/cart/:userId` | Shopping Cart — view cart |

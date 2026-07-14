@@ -78,6 +78,37 @@ router.get('/', booksCtrl.getAllBooks);
  */
 router.get('/isbn/:isbn', booksCtrl.getBookByIsbn);
 
+// ── Sprint 3 — Book Details (admin) Endpoints ──────────────────────────────────
+
+/**
+ * @route   POST /api/books
+ * @summary Create a new book (admin feature).
+ * @access  Admin
+ *
+ * Request body (Book Object):
+ * ```json
+ * {
+ *   "isbn": "9781234567890",
+ *   "title": "New Tech Book",
+ *   "description": "A new book about software engineering.",
+ *   "price": 49.99,
+ *   "yearPublished": 2026,
+ *   "authorId": 1,
+ *   "publisherId": 1,
+ *   "genreId": 1
+ * }
+ * ```
+ * isbn, title, description, price, yearPublished, authorId, genreId, and
+ * publisherId are required; copiesSold and coverImage are optional.
+ *
+ * Returns HTTP 201 with the created book on success, 400 on invalid input
+ * (missing/invalid fields, a duplicate isbn, or an authorId/genreId/publisherId
+ * that doesn't exist).
+ *
+ * @see booksCtrl.createBook
+ */
+router.post('/', booksCtrl.createBook);
+
 // ── Sprint 3+ Placeholder Routes ──────────────────────────────────────────────
 // These are stubs for endpoints planned in future sprints.
 // Uncomment each line in the correct feature branch when ready to implement.
@@ -97,10 +128,6 @@ router.get('/isbn/:isbn', booksCtrl.getBookByIsbn);
 // GET /api/books/publisher/:publisherId
 //   Book Browsing feature: returns all books from a publisher with the publisher's discount applied.
 // router.get('/publisher/:publisherId', booksCtrl.getBooksByPublisher);
-
-// POST /api/books
-//   Book Details (admin) feature: creates a new book record.
-// router.post('/', booksCtrl.createBook);
 
 // PATCH /api/books/:id/price
 //   Book Details (admin) feature: updates the price of an existing book.
