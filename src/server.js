@@ -88,11 +88,12 @@ app.get('/health', (req, res) => {
 // app.use(prefix, router) mounts a router so every route it defines is prefixed.
 // Example: a route defined as GET / inside bookRoutes becomes GET /api/books.
 
-app.use('/api/books', ratingsRoutes);
+
 app.use('/api/books', bookRoutes); // All book-related endpoints (browse, details, CRUD)
 app.use('/api/authors', authorRoutes); // Author creation (Book Details — admin feature)
 app.use('/api/books', browsingRoutes);
 
+app.use('/api', ratingsRoutes); // Star ratings and written comments.
 // Uncomment as each sprint's feature is implemented and its branch is merged:
 // app.use('/api/users',     profileRoutes);  // User profile creation and management
 // app.use('/api/cart',      cartRoutes);     // Add-to-cart, update quantity, checkout
