@@ -540,9 +540,9 @@ Run all of these from inside the project folder in your terminal.
 
 ---
 
-## 9. API Endpoints (What the Server Can Do Right Now)
+## 9. API Endpoints - Feature Documentation
 
-An **endpoint** is a URL + HTTP method combination that the server responds to. Here are the endpoints currently implemented:
+An **endpoint** is a URL + HTTP method combination that the server responds to. Documentation for every feature is listed below:
 
 ### Health Check
 
@@ -550,37 +550,39 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 |---|---|---|
 | `GET` | `/health` | Confirms the server is running. Returns status `OK`. |
 
-### Books
+### Book Details - Francisco Sierra
 
 | Method | URL | Description |
 |---|---|---|
-| `GET` | `/api/books` | Returns a list of all 30 books with author, publisher, and genre info. |
-| `GET` | `/api/books/isbn/:isbn` | Returns a single book by ISBN with ratings, comments, and average rating. Replace `:isbn` with an actual ISBN, e.g. `/api/books/isbn/9780132350884`. |
-| `POST` | `/api/books` | Book Details (admin) — creates a new book. Requires isbn, title, description, price, yearPublished, authorId, genreId, publisherId. |
 
-### Authors
+### Rating and Comments - Guillermo Yepez
 
 | Method | URL | Description |
 |---|---|---|
-| `POST` | `/api/authors` | Book Details (admin) — creates a new author. Requires firstName, lastName; biography and publisherId optional. |
-| `GET` | `/api/authors/:id/books` | Book Details — returns every book written by the given author, with publisher and genre info. Returns 404 if the author doesn't exist, or `{ count: 0, data: [] }` if they exist but have no books yet. |
 
-### Planned Endpoints (Sprint 3+)
+### Book Browsing and Sorting - Shreya Sureshbabu Banumathi
 
-These will be added by each feature team in their respective branches:
-
-| Method | URL | Feature |
+| Method | URL | Description |
 |---|---|---|
-| `GET` | `/api/books/genre/:genreId` | Book Browsing — filter by genre |
-| `GET` | `/api/books/top-sellers` | Book Browsing — top 10 by copies sold |
-| `GET` | `/api/books/rating/:minRating` | Book Browsing — filter by minimum rating |
-| `GET` | `/api/books/publisher/:publisherId` | Book Browsing — filter by publisher |
-| `GET` | `/api/users/:id` | Profile Management — get user profile |
-| `POST` | `/api/users` | Profile Management — create user |
-| `GET` | `/api/cart/:userId` | Shopping Cart — view cart |
-| `POST` | `/api/cart` | Shopping Cart — add item to cart |
-| `POST` | `/api/ratings` | Ratings & Comments — submit a rating |
-| `GET` | `/api/wishlists/:userId` | Wishlist Management — get user's wishlists |
+| `GET` | `/api/books/genre/:genre` | Returns all books belonging to the specified genre. |
+| `GET` | `/api/books/top-sellers` | Returns the ten highest-selling books. |
+| `GET` | `/api/books/rating/:minRating` | Returns books whose average rating is greater than or equal to the specified rating. |
+| `GET` | `/api/books/publisher/:publisherId` | Returns books from a specific publisher with the publisher discount applied to the displayed price. |
+
+### Profile Management - Stewart Smith Jr.
+
+| Method | URL | Description |
+|---|---|---|
+
+### Shopping Cart - Santiago Suli Ramirez
+
+| Method | URL | Description |
+|---|---|---|
+
+### Wishlist Management - Hiram Torres-Marin
+
+| Method | URL | Description |
+|---|---|---|
 
 ---
 
