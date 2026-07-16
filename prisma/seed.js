@@ -53,91 +53,74 @@ async function main() {
   console.log('🌱 Seeding Geek Text database...\n');
 
   // ── Step 1: Clear Existing Data ───────────────────────────────────────────
-  // Delete records starting from the most-dependent tables (leaves of the
-  // foreign-key tree) and working up toward the root tables.
-  // This order prevents "foreign key constraint failed" errors.
-  await prisma.comment.deleteMany();      // Comments depend on User + Book
-  await prisma.rating.deleteMany();       // Ratings depend on User + Book
-  await prisma.wishlistItem.deleteMany(); // WishlistItems depend on Wishlist + Book
-  await prisma.wishlist.deleteMany();     // Wishlists depend on User
-  await prisma.cartItem.deleteMany();     // CartItems depend on User + Book
-  await prisma.creditCard.deleteMany();   // CreditCards depend on User
-  await prisma.book.deleteMany();         // Books depend on Author + Publisher + Genre
-  await prisma.user.deleteMany();         // Users have no dependencies
-  await prisma.author.deleteMany();       // Authors have no dependencies
-  await prisma.publisher.deleteMany();    // Publishers have no dependencies
-  await prisma.genre.deleteMany();        // Genres have no dependencies
-  console.log('✓ Cleared existing data');
+  // TRUNCATE ... RESTART IDENTITY resets every table's auto-increment sequence
+  // back to 1. deleteMany() (plain SQL DELETE) only empties the rows — it
+  // leaves the sequence wherever it was, so every reseed pushed ids higher
+  // (Publishers became 6-10, then 11-15, ...), breaking any hardcoded id used
+  // in Postman requests, demo scripts, or docs. CASCADE also truncates any
+  // dependent rows automatically, so listing every table is just documentation.
+  await prisma.$executeRaw`
+    TRUNCATE TABLE
+      "Comment", "Rating", "WishlistItem", "Wishlist", "CartItem", "CreditCard",
+      "Book", "User", "Author", "Publisher", "Genre"
+    RESTART IDENTITY CASCADE;
+  `;
+  console.log('✓ Cleared existing data and reset id sequences');
 
   // ── Step 2: Create Genres ─────────────────────────────────────────────────
   // Genres are top-level categories with no foreign-key dependencies,
   // so they are safe to create first.
-  // Promise.all runs all five inserts in parallel for speed.
-  const [
-    softwareEng,
-    artificialIntelligence,
-    cybersecurity,
-    cloudComputing,
-    dataScience,
-  ] = await Promise.all([
-    prisma.genre.create({ data: { name: 'Software Engineering' } }),
-    prisma.genre.create({ data: { name: 'Artificial Intelligence' } }),
-    prisma.genre.create({ data: { name: 'Cybersecurity' } }),
-    prisma.genre.create({ data: { name: 'Cloud Computing' } }),
-    prisma.genre.create({ data: { name: 'Data Science' } }),
-  ]);
+  // Created sequentially (not Promise.all) so ids land in this exact order
+  // every time. Promise.all fires all five inserts concurrently, and Postgres
+  // can commit them in any order — so "Software Engineering = id 1" was never
+  // actually guaranteed, even right after a sequence reset.
+  const softwareEng            = await prisma.genre.create({ data: { name: 'Software Engineering' } });
+  const artificialIntelligence = await prisma.genre.create({ data: { name: 'Artificial Intelligence' } });
+  const cybersecurity          = await prisma.genre.create({ data: { name: 'Cybersecurity' } });
+  const cloudComputing         = await prisma.genre.create({ data: { name: 'Cloud Computing' } });
+  const dataScience            = await prisma.genre.create({ data: { name: 'Data Science' } });
   console.log('✓ Created 5 genres');
 
   // ── Step 3: Create Publishers ─────────────────────────────────────────────
   // discountPercent stores the publisher-wide discount (e.g. 10 = 10% off).
   // This value is used by the Book Browsing feature when filtering by publisher.
-  const [oreilly, noStarch, addisonWesley, manning, packt] = await Promise.all([
-    prisma.publisher.create({ data: { name: "O'Reilly Media",       discountPercent: 10 } }),
-    prisma.publisher.create({ data: { name: 'No Starch Press',      discountPercent: 15 } }),
-    prisma.publisher.create({ data: { name: 'Addison-Wesley',       discountPercent: 5  } }),
-    prisma.publisher.create({ data: { name: 'Manning Publications', discountPercent: 20 } }),
-    prisma.publisher.create({ data: { name: 'Packt Publishing',     discountPercent: 25 } }),
-  ]);
+  // Sequential for the same reason as Genres above — this guarantees
+  // O'Reilly Media is always publisher id 1, No Starch Press is id 2, etc.,
+  // so demo scripts and Postman bodies can safely hardcode publisherId values.
+  const oreilly       = await prisma.publisher.create({ data: { name: "O'Reilly Media",       discountPercent: 10 } });
+  const noStarch      = await prisma.publisher.create({ data: { name: 'No Starch Press',      discountPercent: 15 } });
+  const addisonWesley = await prisma.publisher.create({ data: { name: 'Addison-Wesley',       discountPercent: 5  } });
+  const manning       = await prisma.publisher.create({ data: { name: 'Manning Publications', discountPercent: 20 } });
+  const packt         = await prisma.publisher.create({ data: { name: 'Packt Publishing',     discountPercent: 25 } });
   console.log('✓ Created 5 publishers');
 
   // ── Step 4: Create Authors ────────────────────────────────────────────────
   // Author records are independent of books, so they can be created here.
   // Each biography is a short paragraph that appears on the book-detail page.
-  const [
-    robertMartin,
-    martinKleppmann,
-    andrewHunt,
-    davidThomas,      // Co-author of The Pragmatic Programmer (reserved for future use)
-    ianGoodfellow,
-    andriyBurkov,
-    bruceSchneier,
-    kelseyHightower,
-    geneKim,
-    martinFowler,
-  ] = await Promise.all([
-    prisma.author.create({ data: { firstName: 'Robert',  lastName: 'Martin',      biography: 'Known as "Uncle Bob", Robert C. Martin is a software engineer and author of Clean Code and Clean Architecture.' } }),
-    prisma.author.create({ data: { firstName: 'Martin',  lastName: 'Kleppmann',   biography: 'Researcher and engineer at Cambridge, author of Designing Data-Intensive Applications.' } }),
-    prisma.author.create({ data: { firstName: 'Andrew',  lastName: 'Hunt',        biography: 'Co-author of The Pragmatic Programmer and founding member of the Agile Alliance.' } }),
-    prisma.author.create({ data: { firstName: 'David',   lastName: 'Thomas',      biography: 'Co-author of The Pragmatic Programmer and advocate for practical software craftsmanship.' } }),
-    prisma.author.create({ data: { firstName: 'Ian',     lastName: 'Goodfellow',  biography: 'Pioneer in deep learning and GANs, former research scientist at OpenAI and Google Brain.' } }),
-    prisma.author.create({ data: { firstName: 'Andriy',  lastName: 'Burkov',      biography: 'Machine learning practitioner and author of The Hundred-Page Machine Learning Book.' } }),
-    prisma.author.create({ data: { firstName: 'Bruce',   lastName: 'Schneier',    biography: 'Internationally renowned security technologist and author of multiple books on cryptography and security.' } }),
-    prisma.author.create({ data: { firstName: 'Kelsey',  lastName: 'Hightower',   biography: 'Developer advocate at Google and co-author of Kubernetes: Up and Running.' } }),
-    prisma.author.create({ data: { firstName: 'Gene',    lastName: 'Kim',         biography: 'Researcher and author known for The Phoenix Project and The DevOps Handbook.' } }),
-    prisma.author.create({ data: { firstName: 'Martin',  lastName: 'Fowler',      biography: 'Chief scientist at Thoughtworks and author of Refactoring and Patterns of Enterprise Application Architecture.' } }),
-  ]);
+  // Sequential — same reasoning as Genres/Publishers above. This also fixes
+  // the book-linking data below: anything assuming e.g. "Robert Martin = author
+  // id 1" now actually holds, instead of depending on Postgres's commit order.
+  const robertMartin    = await prisma.author.create({ data: { firstName: 'Robert',  lastName: 'Martin',      biography: 'Known as "Uncle Bob", Robert C. Martin is a software engineer and author of Clean Code and Clean Architecture.' } });
+  const martinKleppmann = await prisma.author.create({ data: { firstName: 'Martin',  lastName: 'Kleppmann',   biography: 'Researcher and engineer at Cambridge, author of Designing Data-Intensive Applications.' } });
+  const andrewHunt      = await prisma.author.create({ data: { firstName: 'Andrew',  lastName: 'Hunt',        biography: 'Co-author of The Pragmatic Programmer and founding member of the Agile Alliance.' } });
+  const davidThomas     = await prisma.author.create({ data: { firstName: 'David',   lastName: 'Thomas',      biography: 'Co-author of The Pragmatic Programmer and advocate for practical software craftsmanship.' } }); // reserved for future use
+  const ianGoodfellow   = await prisma.author.create({ data: { firstName: 'Ian',     lastName: 'Goodfellow',  biography: 'Pioneer in deep learning and GANs, former research scientist at OpenAI and Google Brain.' } });
+  const andriyBurkov    = await prisma.author.create({ data: { firstName: 'Andriy',  lastName: 'Burkov',      biography: 'Machine learning practitioner and author of The Hundred-Page Machine Learning Book.' } });
+  const bruceSchneier   = await prisma.author.create({ data: { firstName: 'Bruce',   lastName: 'Schneier',    biography: 'Internationally renowned security technologist and author of multiple books on cryptography and security.' } });
+  const kelseyHightower = await prisma.author.create({ data: { firstName: 'Kelsey',  lastName: 'Hightower',   biography: 'Developer advocate at Google and co-author of Kubernetes: Up and Running.' } });
+  const geneKim         = await prisma.author.create({ data: { firstName: 'Gene',    lastName: 'Kim',         biography: 'Researcher and author known for The Phoenix Project and The DevOps Handbook.' } });
+  const martinFowler    = await prisma.author.create({ data: { firstName: 'Martin',  lastName: 'Fowler',      biography: 'Chief scientist at Thoughtworks and author of Refactoring and Patterns of Enterprise Application Architecture.' } });
   console.log('✓ Created 10 authors');
 
   // ── Step 5: Create Users ──────────────────────────────────────────────────
   // Five test accounts — one per developer/feature area — with a shared plaintext
   // password. ⚠️ Replace with bcrypt-hashed passwords before any production deploy.
-  const [alice, bob, carlos, diana, evan] = await Promise.all([
-    prisma.user.create({ data: { username: 'alice_dev',  email: 'alice@geektext.com',  password: 'password123', firstName: 'Alice',  lastName: 'Johnson',  homeAddress: '123 Maple St, Miami, FL 33101' } }),
-    prisma.user.create({ data: { username: 'bob_codes',  email: 'bob@geektext.com',    password: 'password123', firstName: 'Bob',    lastName: 'Williams', homeAddress: '456 Oak Ave, Orlando, FL 32801' } }),
-    prisma.user.create({ data: { username: 'carlos_ml',  email: 'carlos@geektext.com', password: 'password123', firstName: 'Carlos', lastName: 'Rivera',   homeAddress: '789 Pine Rd, Tampa, FL 33601' } }),
-    prisma.user.create({ data: { username: 'diana_sec',  email: 'diana@geektext.com',  password: 'password123', firstName: 'Diana',  lastName: 'Chen',     homeAddress: '321 Elm Blvd, Jacksonville, FL 32099' } }),
-    prisma.user.create({ data: { username: 'evan_cloud', email: 'evan@geektext.com',   password: 'password123', firstName: 'Evan',   lastName: 'Torres',   homeAddress: '654 Cedar Ln, Tallahassee, FL 32301' } }),
-  ]);
+  // Sequential for the same id-determinism reason as above.
+  const alice  = await prisma.user.create({ data: { username: 'alice_dev',  email: 'alice@geektext.com',  password: 'password123', firstName: 'Alice',  lastName: 'Johnson',  homeAddress: '123 Maple St, Miami, FL 33101' } });
+  const bob    = await prisma.user.create({ data: { username: 'bob_codes',  email: 'bob@geektext.com',    password: 'password123', firstName: 'Bob',    lastName: 'Williams', homeAddress: '456 Oak Ave, Orlando, FL 32801' } });
+  const carlos = await prisma.user.create({ data: { username: 'carlos_ml',  email: 'carlos@geektext.com', password: 'password123', firstName: 'Carlos', lastName: 'Rivera',   homeAddress: '789 Pine Rd, Tampa, FL 33601' } });
+  const diana  = await prisma.user.create({ data: { username: 'diana_sec',  email: 'diana@geektext.com',  password: 'password123', firstName: 'Diana',  lastName: 'Chen',     homeAddress: '321 Elm Blvd, Jacksonville, FL 32099' } });
+  const evan   = await prisma.user.create({ data: { username: 'evan_cloud', email: 'evan@geektext.com',   password: 'password123', firstName: 'Evan',   lastName: 'Torres',   homeAddress: '654 Cedar Ln, Tallahassee, FL 32301' } });
   console.log('✓ Created 5 users');
 
   // ── Step 6: Create Credit Cards ───────────────────────────────────────────
