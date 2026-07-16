@@ -554,6 +554,11 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 
 | Method | URL | Description |
 |---|---|---|
+| `GET` | `/api/books` | Returns a list of all 30 books with author, publisher, and genre info. |
+| `GET` | `/api/books/isbn/:isbn` | Returns a single book by ISBN with ratings, comments, and average rating. Replace `:isbn` with an actual ISBN, e.g. `/api/books/isbn/9780132350884`. |
+| `POST` | `/api/books` | Creates a new book (admin). Requires isbn, title, description, price, yearPublished, authorId, genreId, publisherId. |
+| `POST` | `/api/authors` | Creates a new author (admin). Requires firstName, lastName; biography and publisherId optional. |
+| `GET` | `/api/authors/:id/books` | Returns every book written by the given author, with publisher and genre info. Returns 404 if the author doesn't exist, or `{ count: 0, data: [] }` if they exist but have no books yet. |
 
 ### Rating and Comments - Guillermo Yepez
 
