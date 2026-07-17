@@ -559,11 +559,11 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 
 | Method | URL | Description |
 |---|---|---|
-| 'GET' | `/api/books/:bookId/ratings/average` | Calculates the strict decimal average rating for a specific book. |
-| 'GET' | `/api/books/:bookId/ratings` | Retrieves all individual user rating records for a given book. |
-| 'GET'  | `/api/books/:bookId/comments` | Retrieves a sorted, paginated list of all text reviews/comments left for a book. |
-| 'POST' | `/api/ratings` | Creates a new rating or updates an existing rating for a user on a 1-5 star scale. |
-| 'POST' | `/api/comments` | Creates or updates a text-based book review/comment. |
+| `GET` | `/api/books/:bookId/ratings/average` | Calculates the strict decimal average rating for a specific book. |
+| `GET` | `/api/books/:bookId/ratings` | Retrieves all individual user rating records for a given book. |
+| `GET`  | `/api/books/:bookId/comments` | Retrieves a sorted, paginated list of all text reviews/comments left for a book. |
+| `POST` | `/api/ratings` | Creates a new rating or updates an existing rating for a user on a 1-5 star scale. |
+| `POST` | `/api/comments` | Creates or updates a text-based book review/comment. |
 
 ### Book Browsing and Sorting - Shreya Sureshbabu Banumathi
 
