@@ -578,6 +578,20 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 
 | Method | URL | Description |
 |---|---|---|
+| `POST` | `/api/users` | Creates a new user profile. |
+| `GET` | `/api/users` | Retrieves all user profiles. |
+| `GET` | `/api/users/:username` | Retrieves the profile information for the specified user. |
+| `PUT` | `/api/users/:username` | Updates all profile information for the specified user. |
+| `PATCH` | `/api/users/:username/password` | Updates the password for the specified user. |
+| `PATCH` | `/api/users/:username/firstName` | Updates the first name for the specified user. |
+| `PATCH` | `/api/users/:username/lastName` | Updates the last name for the specified user. |
+| `PATCH` | `/api/users/:username/homeAddress` | Updates the home address for the specified user. |
+| `PATCH` | `/api/users/:username/role` | Updates the role assigned to the specified user. |
+| `POST` | `/api/users/:username/credit-card` | Adds a new credit card to the specified user's account. |
+| `GET` | `/api/users/:username/credit-card` | Retrieves all credit cards associated with the specified user. |
+
+| Method | URL | Description |
+|---|---|---|
 
 ### Shopping Cart - Santiago Suli Ramirez
 
