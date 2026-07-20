@@ -540,9 +540,9 @@ Run all of these from inside the project folder in your terminal.
 
 ---
 
-## 9. API Endpoints (What the Server Can Do Right Now)
+## 9. API Endpoints - Feature Documentation
 
-An **endpoint** is a URL + HTTP method combination that the server responds to. Here are the endpoints currently implemented:
+An **endpoint** is a URL + HTTP method combination that the server responds to. Documentation for every feature is listed below:
 
 ### Health Check
 
@@ -550,20 +550,20 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 |---|---|---|
 | `GET` | `/health` | Confirms the server is running. Returns status `OK`. |
 
-### Books
+### Book Details - Francisco Sierra
 
 | Method | URL | Description |
 |---|---|---|
-| `GET` | `/api/books` | Returns a list of all 30 books with author, publisher, and genre info. |
-| `GET` | `/api/books/isbn/:isbn` | Returns a single book by ISBN with ratings, comments, and average rating. Replace `:isbn` with an actual ISBN, e.g. `/api/books/isbn/9780132350884`. |
-| `POST` | `/api/books` | Book Details (admin) — creates a new book. Requires isbn, title, description, price, yearPublished, authorId, genreId, publisherId. |
 
-### Authors
+### Rating and Comments - Guillermo Yepez
 
 | Method | URL | Description |
 |---|---|---|
-| `POST` | `/api/authors` | Book Details (admin) — creates a new author. Requires firstName, lastName; biography and publisherId optional. |
-| `GET` | `/api/authors/:id/books` | Book Details — returns every book written by the given author, with publisher and genre info. Returns 404 if the author doesn't exist, or `{ count: 0, data: [] }` if they exist but have no books yet. |
+| `GET` | `/api/books/:bookId/ratings/average` | Calculates the strict decimal average rating for a specific book. |
+| `GET` | `/api/books/:bookId/ratings` | Retrieves all individual user rating records for a given book. |
+| `GET`  | `/api/books/:bookId/comments` | Retrieves a sorted, paginated list of all text reviews/comments left for a book. |
+| `POST` | `/api/ratings` | Creates a new rating or updates an existing rating for a user on a 1-5 star scale. |
+| `POST` | `/api/comments` | Creates or updates a text-based book review/comment. |
 
 ### Shopping Cart
 
@@ -630,9 +630,40 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 
 ### Planned Endpoints (Sprint 3+)
 
-These will be added by each feature team in their respective branches:
+| Method | URL | Description |
+|---|---|---|
+| `GET` | `/api/books/genre/:genre` | Returns all books belonging to the specified genre. |
+| `GET` | `/api/books/top-sellers` | Returns the ten highest-selling books. |
+| `GET` | `/api/books/rating/:minRating` | Returns books whose average rating is greater than or equal to the specified rating. |
+| `GET` | `/api/books/publisher/:publisherId` | Returns books from a specific publisher with the publisher discount applied to the displayed price. |
 
-| Method | URL | Feature |
+### Profile Management - Stewart Smith Jr.
+
+| Method | URL | Description |
+|---|---|---|
+| `POST` | `/api/users` | Creates a new user profile. |
+| `GET` | `/api/users` | Retrieves all user profiles. |
+| `GET` | `/api/users/:username` | Retrieves the profile information for the specified user. |
+| `PUT` | `/api/users/:username` | Updates all profile information for the specified user. |
+| `PATCH` | `/api/users/:username/password` | Updates the password for the specified user. |
+| `PATCH` | `/api/users/:username/firstName` | Updates the first name for the specified user. |
+| `PATCH` | `/api/users/:username/lastName` | Updates the last name for the specified user. |
+| `PATCH` | `/api/users/:username/homeAddress` | Updates the home address for the specified user. |
+| `PATCH` | `/api/users/:username/role` | Updates the role assigned to the specified user. |
+| `POST` | `/api/users/:username/credit-card` | Adds a new credit card to the specified user's account. |
+| `GET` | `/api/users/:username/credit-card` | Retrieves all credit cards associated with the specified user. |
+
+| Method | URL | Description |
+|---|---|---|
+
+### Shopping Cart - Santiago Suli Ramirez
+
+| Method | URL | Description |
+|---|---|---|
+
+### Wishlist Management - Hiram Torres-Marin
+
+| Method | URL | Description |
 |---|---|---|
 | `GET` | `/api/books/genre/:genreId` | Book Browsing — filter by genre |
 | `GET` | `/api/books/top-sellers` | Book Browsing — top 10 by copies sold |
