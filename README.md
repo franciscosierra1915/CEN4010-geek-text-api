@@ -565,7 +565,70 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 | `POST` | `/api/ratings` | Creates a new rating or updates an existing rating for a user on a 1-5 star scale. |
 | `POST` | `/api/comments` | Creates or updates a text-based book review/comment. |
 
-### Book Browsing and Sorting - Shreya Sureshbabu Banumathi
+### Shopping Cart
+
+> Implemented on the `Shopping-Cart` feature branch. The endpoints below reflect that branch's implementation.
+
+| Method | URL | Description |
+|---|---|---|
+| `GET` | `/api/cart/:userId` | Returns the user's cart: every `CartItem` joined with its book, author, and publisher discount, plus computed line totals and a subtotal. Returns `404` if the user doesn't exist, or an empty cart (`items: []`, totals `0`) if they exist but haven't added anything yet. |
+| `POST` | `/api/cart/:userId/items` | Adds a book to the user's cart. If the book is already in the cart, its quantity is **incremented** instead of creating a duplicate row. Requires `bookId` in the JSON body; `quantity` defaults to `1` when omitted. Returns `404` if the user or book doesn't exist. |
+
+**`GET /api/cart/:userId` — response shape**
+
+```json
+{
+  "userId": 1,
+  "itemCount": 2,
+  "totalQuantity": 3,
+  "subtotal": 142.47,
+  "items": [
+    {
+      "cartItemId": 7,
+      "bookId": 1,
+      "title": "Clean Code",
+      "author": "Robert Martin",
+      "coverImage": "https://.../clean-code.jpg",
+      "quantity": 2,
+      "unitPrice": 49.99,
+      "discountPercent": 5,
+      "discountedUnitPrice": 47.49,
+      "lineTotal": 94.98
+    }
+  ]
+}
+```
+
+- `unitPrice` is the book's list price; `discountedUnitPrice` applies the book's **publisher** discount (`Publisher.discountPercent`) — the cart, not the book, is where discounts get applied.
+- `lineTotal` = `discountedUnitPrice × quantity`, rounded to 2 decimals. `subtotal` is the sum of every item's `lineTotal`.
+- `itemCount` is the number of distinct books in the cart (rows); `totalQuantity` is the total copies across all of them.
+
+**`POST /api/cart/:userId/items` — request/response**
+
+```json
+// Request body
+{ "bookId": 3, "quantity": 2 }
+
+// 201 response
+{
+  "message": "Book added to cart.",
+  "data": { "id": 7, "userId": 1, "bookId": 3, "quantity": 2 }
+}
+```
+
+- Adding a book that's already in the cart **increments** the existing row's quantity rather than inserting a second one — enforced by the `@@unique([userId, bookId])` constraint on `CartItem` and applied atomically via a Prisma `upsert`.
+- There's no stock/inventory check yet: the `Book` model doesn't track available stock, so only a "quantity must be a positive integer" check is applied.
+- Removing items or updating an existing item's quantity directly (rather than adding more) isn't implemented yet.
+
+**Error responses (both endpoints)**
+
+| Status | When |
+|---|---|
+| `400` | `userId` (URL param) or `bookId` / `quantity` (request body) is missing or not a positive integer. |
+| `404` | The referenced user or book doesn't exist. |
+| `500` | Unexpected database error. |
+
+### Planned Endpoints (Sprint 3+)
 
 | Method | URL | Description |
 |---|---|---|
@@ -602,6 +665,14 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 
 | Method | URL | Description |
 |---|---|---|
+| `GET` | `/api/books/genre/:genreId` | Book Browsing — filter by genre |
+| `GET` | `/api/books/top-sellers` | Book Browsing — top 10 by copies sold |
+| `GET` | `/api/books/rating/:minRating` | Book Browsing — filter by minimum rating |
+| `GET` | `/api/books/publisher/:publisherId` | Book Browsing — filter by publisher |
+| `GET` | `/api/users/:id` | Profile Management — get user profile |
+| `POST` | `/api/users` | Profile Management — create user |
+| `POST` | `/api/ratings` | Ratings & Comments — submit a rating |
+| `GET` | `/api/wishlists/:userId` | Wishlist Management — get user's wishlists |
 
 ---
 
