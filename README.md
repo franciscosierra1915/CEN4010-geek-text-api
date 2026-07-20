@@ -665,6 +665,13 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 
 | Method | URL | Description |
 |---|---|---|
+| `POST` | `/api/wishlists` | Creates a new wishlists. |
+| `POST` | `/api/wishlists/:wishlistId/books/:bookId` | Adds a book to a wishlist. |
+| `GET` | `/api/wishlists/:wishlistId/books` | Views the books in the wishlist. |
+| `DELETE` | `/api/wishlists/:wishlistId/books/:bookId/move-to-cart` | Moves a book from the wishlist to the shopping cart and deletes it from the wishlist. |
+
+| Method | URL | Description |
+|---|---|---|
 | `GET` | `/api/books/genre/:genreId` | Book Browsing — filter by genre |
 | `GET` | `/api/books/top-sellers` | Book Browsing — top 10 by copies sold |
 | `GET` | `/api/books/rating/:minRating` | Book Browsing — filter by minimum rating |
