@@ -21,6 +21,11 @@ const createUser = async (req, res) => {
     const saltRounds = 10; // Number of salt rounds for bcrypt
     const { username, email, password, firstName, lastName, homeAddress, role } = req.body;
  
+
+    if(!username || !email || !password || !firstName || !lastName || !homeAddress || !role) {
+      return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    
     const hash =await bcrypt.hash(password, 10);
 
     //console.log('Creating user with data:', { username, email, password, firstName, lastName, homeAddress, role });
@@ -230,16 +235,17 @@ const updatePassword = async (req, res) => {
 
   const updateUser = async (req, res) => {
     try {
-      const { username } = req.params;
-      const { password, firstName, lastName, homeAddress, role } = req.body;  
+      const { username: currentUsername } = req.params;
+      const { username : usernameUpdate,password, firstName, lastName, homeAddress, role } = req.body;  
 
       const saltRounds = 10; // Number of salt rounds for bcrypt
       const hash = await bcrypt.hash(password, saltRounds); // Hash the new password
 
       const updatedUser = await prisma.user.update({
-        where: { username: username },
+        where: { username: currentUsername },
         data: {
 
+          username: usernameUpdate, // Update the username if provided
           password: hash, // Store the hashed password instead of plain text
           firstName,
           lastName,
@@ -266,6 +272,9 @@ const updatePassword = async (req, res) => {
 
       const{cardholderName,lastFour,cardType,expirationMonth,expirationYear} = req.body;
       
+      if(!cardholderName || !lastFour || !cardType || !expirationMonth || !expirationYear) {
+        return res.status(400).json({ error: 'Missing required credit card fields.' });
+      }
 
       const newCreditCard = await prisma.creditCard.create({
         data: {
@@ -279,13 +288,13 @@ const updatePassword = async (req, res) => {
           },
         },
       });
-      
+       res.status(201).json({ message: 'Credit card created successfully.' });
     }
     catch (error) {
       console.error('createCreditCard error:', error);
       res.status(500).json({ error: 'Failed to create credit card.' });
     }
-    res.status(201).json({ message: 'Credit card created successfully.' });
+   
 
 
   }
@@ -301,6 +310,9 @@ const updatePassword = async (req, res) => {
           },
         },
       });
+      if(!creditCards || creditCards.length === 0) {
+        return res.status(404).json({ error: 'No credit cards found for this user.' });
+      }
 
       res.status(200).json(creditCards);
     }
