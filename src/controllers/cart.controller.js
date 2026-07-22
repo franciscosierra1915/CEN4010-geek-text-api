@@ -32,17 +32,230 @@ const prisma = new PrismaClient();
 
 /**
  * @function getCartByUser
- * @summary  Fetch all cart items belonging to a specific user.
+ * @summary  Fetch all cart items belonging to a specific user, joined with book details.
  * @async
  *
- * @param {import('express').Request}  req             - Express request object.
- * @param {string}                     req.params.userId - The user ID extracted from the URL path.
- * @param {import('express').Response} res             - Express response object used to send the reply.
+ * Uses Prisma's nested `include` to pull each CartItem along with its parent
+ * Book, the book's Author (for the display name), and the book's Publisher
+ * (for the discount percentage). Prisma translates the include tree into a
+ * single SQL query with LEFT JOINs — the client receives a fully hydrated
+ * object tree without making extra requests.
  *
- * @returns {void} Placeholder — full implementation coming in a future sprint.
+ * The response is shaped for direct rendering in a cart view: each item
+ * carries the title, author name, cover image, unit price, applied discount,
+ * quantity, and a precomputed line total. A top-level `subtotal` sums every
+ * discounted line so the frontend (or future checkout endpoint) never has to
+ * recalculate money client-side.
+ *
+ * @param {import('express').Request}  req               - Express request object.
+ * @param {string}                     req.params.userId - The user ID extracted from the URL path.
+ * @param {import('express').Response} res               - Express response object used to send the reply.
+ *
+ * @returns {void} Sends one of:
+ *   - HTTP 200 with `{ userId, itemCount, totalQuantity, subtotal, items: [...] }` on success.
+ *     When the cart is empty, `items` is `[]` and totals are `0`.
+ *   - HTTP 400 with `{ error: string }` if the userId path param is not a valid integer.
+ *   - HTTP 404 with `{ error: string }` if no user exists with the given id.
+ *   - HTTP 500 with `{ error: string }` if the database query fails.
+ *
+ * @example
+ * // GET /api/cart/1 → 200
+ * {
+ *   "userId": 1,
+ *   "itemCount": 2,
+ *   "totalQuantity": 3,
+ *   "subtotal": 142.47,
+ *   "items": [
+ *     {
+ *       "cartItemId": 7,
+ *       "bookId": 1,
+ *       "title": "Clean Code",
+ *       "author": "Robert Martin",
+ *       "coverImage": "https://.../clean-code.jpg",
+ *       "quantity": 2,
+ *       "unitPrice": 49.99,
+ *       "discountPercent": 5,
+ *       "discountedUnitPrice": 47.49,
+ *       "lineTotal": 94.98
+ *     },
+ *     ...
+ *   ]
+ * }
  */
 const getCartByUser = async (req, res) => {
-  res.json({ message: 'getCartByUser - coming soon' });
+  // ── 1. Parse and validate the userId path param ─────────────────────────
+  const userId = Number.parseInt(req.params.userId, 10);
+  if (Number.isNaN(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'A valid userId is required in the URL path.' });
+  }
+
+  try {
+    // ── 2. Confirm the user exists ────────────────────────────────────────
+    // Distinguishes "user has no cart items" (200 with empty array) from
+    // "user does not exist" (404).
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: `User with id ${userId} not found.` });
+    }
+
+    // ── 3. Fetch all cart items with their book + author + publisher ──────
+    // The nested `include` becomes a single SELECT with LEFT JOINs. Sorting
+    // by cartItem id keeps display order stable across repeat fetches.
+    const cartItems = await prisma.cartItem.findMany({
+      where:   { userId },
+      orderBy: { id: 'asc' },
+      include: {
+        book: {
+          include: {
+            author:    true, // Needed for the displayed author name
+            publisher: true, // Needed to apply the publisher's discount
+          },
+        },
+      },
+    });
+
+    // ── 4. Shape the payload for the frontend ─────────────────────────────
+    // Money is rounded to two decimals at the boundary so JSON consumers
+    // never have to deal with floating-point artifacts (e.g. 47.490000001).
+    const round2 = (n) => Math.round(n * 100) / 100;
+
+    const items = cartItems.map((ci) => {
+      const unitPrice           = ci.book.price;
+      const discountPercent     = ci.book.publisher.discountPercent;
+      const discountedUnitPrice = round2(unitPrice * (1 - discountPercent / 100));
+      const lineTotal           = round2(discountedUnitPrice * ci.quantity);
+
+      return {
+        cartItemId:          ci.id,
+        bookId:              ci.book.id,
+        title:               ci.book.title,
+        author:              `${ci.book.author.firstName} ${ci.book.author.lastName}`,
+        coverImage:          ci.book.coverImage, // May be null when no cover is uploaded
+        quantity:            ci.quantity,
+        unitPrice:           round2(unitPrice),
+        discountPercent,
+        discountedUnitPrice,
+        lineTotal,
+      };
+    });
+
+    // ── 5. Aggregate top-level totals ─────────────────────────────────────
+    // itemCount    = number of distinct books in the cart (rows).
+    // totalQuantity = total copies the user is buying (sum of quantities).
+    // subtotal     = sum of every line total, after publisher discounts.
+    const totalQuantity = items.reduce((sum, i) => sum + i.quantity,  0);
+    const subtotal      = round2(items.reduce((sum, i) => sum + i.lineTotal, 0));
+
+    return res.status(200).json({
+      userId,
+      itemCount: items.length,
+      totalQuantity,
+      subtotal,
+      items,
+    });
+  } catch (error) {
+    console.error('getCartByUser error:', error);
+    return res.status(500).json({ error: 'Failed to retrieve cart.' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  addBookToCart
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @function addBookToCart
+ * @summary  Add a book to a user's shopping cart, or increment its quantity if already present.
+ * @async
+ *
+ * Uses Prisma's `upsert` against the compound unique key `(userId, bookId)`
+ * declared in schema.prisma. This makes the operation atomic:
+ *   - If no CartItem exists for this (user, book) pair, a new row is created
+ *     with the requested quantity.
+ *   - If a CartItem already exists, its quantity is incremented by the
+ *     requested amount instead of inserting a duplicate row.
+ *
+ * Inventory / stock validation is intentionally out of scope: the current
+ * Book model does not track available stock, so no upper bound is enforced
+ * beyond a basic positive-integer sanity check.
+ *
+ * @param {import('express').Request}  req                  - Express request object.
+ * @param {string}                     req.params.userId    - The user ID extracted from the URL path.
+ * @param {object}                     req.body             - JSON body of the request.
+ * @param {number}                     req.body.bookId      - ID of the book being added.
+ * @param {number}                    [req.body.quantity=1] - Number of copies to add. Defaults to 1 when omitted.
+ * @param {import('express').Response} res                  - Express response object used to send the reply.
+ *
+ * @returns {void} Sends one of:
+ *   - HTTP 201 with `{ message: string, data: CartItem }` on success.
+ *   - HTTP 400 with `{ error: string }` if userId/bookId/quantity are missing or invalid.
+ *   - HTTP 404 with `{ error: string }` if the user or book does not exist.
+ *   - HTTP 500 with `{ error: string }` if the database operation fails.
+ *
+ * @example
+ * // POST /api/cart/1/items
+ * // body: { "bookId": 3, "quantity": 2 }
+ * // 201 response:
+ * {
+ *   "message": "Book added to cart.",
+ *   "data": { "id": 7, "userId": 1, "bookId": 3, "quantity": 2 }
+ * }
+ */
+const addBookToCart = async (req, res) => {
+  // ── 1. Parse and validate inputs ──────────────────────────────────────────
+  // URL params arrive as strings; coerce to integers so Prisma receives the
+  // correct types and so we can reject malformed values up front.
+  const userId   = Number.parseInt(req.params.userId, 10);
+  const bookId   = Number.parseInt(req.body.bookId,   10);
+  // Quantity defaults to 1 when the client omits it — matches the schema default.
+  const quantity = req.body.quantity === undefined
+    ? 1
+    : Number.parseInt(req.body.quantity, 10);
+
+  if (Number.isNaN(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'A valid userId is required in the URL path.' });
+  }
+  if (Number.isNaN(bookId) || bookId <= 0) {
+    return res.status(400).json({ error: 'A valid bookId is required in the request body.' });
+  }
+  if (Number.isNaN(quantity) || quantity <= 0) {
+    return res.status(400).json({ error: 'quantity must be a positive integer.' });
+  }
+
+  try {
+    // ── 2. Confirm the referenced user and book actually exist ──────────────
+    // Without this check, a bad ID would surface as a generic foreign-key
+    // violation (HTTP 500). A 404 is a clearer signal to the client.
+    const [user, book] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId } }),
+      prisma.book.findUnique({ where: { id: bookId } }),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({ error: `User with id ${userId} not found.` });
+    }
+    if (!book) {
+      return res.status(404).json({ error: `Book with id ${bookId} not found.` });
+    }
+
+    // ── 3. Upsert the cart item ─────────────────────────────────────────────
+    // The compound key `userId_bookId` is auto-generated by Prisma because
+    // schema.prisma declares `@@unique([userId, bookId])` on CartItem.
+    // `increment` is an atomic SQL UPDATE — safe under concurrent requests.
+    const cartItem = await prisma.cartItem.upsert({
+      where:  { userId_bookId: { userId, bookId } },
+      create: { userId, bookId, quantity },
+      update: { quantity: { increment: quantity } },
+    });
+
+    return res.status(201).json({
+      message: 'Book added to cart.',
+      data:    cartItem,
+    });
+  } catch (error) {
+    console.error('addBookToCart error:', error);
+    return res.status(500).json({ error: 'Failed to add book to cart.' });
+  }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -55,4 +268,5 @@ const getCartByUser = async (req, res) => {
  */
 module.exports = {
   getCartByUser,
+  addBookToCart,
 };

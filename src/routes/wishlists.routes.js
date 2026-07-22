@@ -1,8 +1,82 @@
+/**
+ * @file wishlists.routes.js
+ * @description Express router that defines all HTTP endpoints for the Wishlist resource.
+ *
+ * This router is mounted at /api/wishlists in server.js, so every route defined
+ * here automatically receives that prefix. For example:
+ *   - router.get('/:userId') → GET /api/wishlists/:userId
+ *
+ * Responsibility split:
+ *   - This file only maps HTTP verbs + paths to controller functions.
+ *   - All database queries and business logic live in wishlists.controller.js.
+ *
+ * @module routes/wishlists
+ */
+
 const express = require('express');
 const router = express.Router();
-
 const wishlistsCtrl = require('../controllers/wishlists.controller');
 
 router.get('/:userId', wishlistsCtrl.getUserWishlists);
+
+/**
+ * @route   GET /api/wishlists/:userId
+ * @summary Retrieve all wishlists belonging to a user.
+ * @access  Public
+ *
+ * @param {number} userId - The user's ID.
+ *
+ * @see wishlistsCtrl.getUserWishlists
+ */
+
+
+router.post('/', wishlistsCtrl.createWishlist);
+/**
+ * @route   POST /api/wishlists
+ * @summary Create a new wishlist.
+ * @access  Public
+ *
+ * The controller creates a new wishlist for a user based on the
+ * request body.
+ *
+ * @see wishlistsCtrl.createWishlist
+ */
+
+router.post('/:wishlistId/items', wishlistsCtrl.addBookToWishlist);
+/**
+ * @route   POST /api/wishlists/:wishlistId/items
+ * @summary A book to wishlist.
+ * @access  Public
+ *
+ * The controller add a book to a wishlist for a user based on the
+ * request body.
+ *
+ * @see wishlistsCtrl.addBookToWishlist
+ */
+
+router.delete('/:wishlistId/items/:bookId/move-to-cart', wishlistsCtrl.moveWishlistBookToCart);
+/**
+ * @route   DELETE /api/wishlists/:wishlistId/items/:bookId/move-to-cart
+ * @summary Move a book from a wishlist to the user's cart.
+ * @access  Public
+ * The controller moves a book from a wishlist to the user's cart based on the
+ * request body.
+ *
+ * @see wishlistsCtrl.moveWishlistBookToCart
+ */
+
+
+router.get('/wishlist/:wishlistId', wishlistsCtrl.getWishlistById);
+/**
+ * @route   GET /api/wishlists/wishlist/:wishlistId
+ * @summary Retrieve a wishlist by its ID.
+ * @access  Public
+ * The controller retrieves a wishlist by its ID based on the
+ * request body.
+ *
+ * @see wishlistsCtrl.getWishlistById
+ *
+ */
+
 
 module.exports = router;
