@@ -4,8 +4,10 @@
  *
  * This router is mounted at /api/cart in server.js, so every route defined here
  * automatically receives that prefix. For example:
- *   - router.get('/:userId')         → GET  /api/cart/:userId
- *   - router.post('/:userId/items')  → POST /api/cart/:userId/items
+ *   - router.get('/:userId')                     → GET    /api/cart/:userId
+ *   - router.get('/:userId/subtotal')            → GET    /api/cart/:userId/subtotal
+ *   - router.post('/:userId/items')              → POST   /api/cart/:userId/items
+ *   - router.delete('/:userId/items/:bookId')    → DELETE /api/cart/:userId/items/:bookId
  *
  * Responsibility split:
  *   - This file only maps HTTP verbs + paths to controller functions.
@@ -30,6 +32,21 @@ const cartCtrl = require('../controllers/cart.controller'); // Controller that h
 router.get('/:userId', cartCtrl.getCartByUser);
 
 /**
+ * @route   GET /api/cart/:userId/subtotal
+ * @summary Return only the calculated subtotal for the user's cart.
+ * @access  Public
+ *
+ * Spec compliance: Feature 3 · Action 1 ("Retrieve the subtotal price of
+ * all items in the user's shopping cart"). Kept as its own route because
+ * the project brief requires every API action to have a dedicated route.
+ *
+ * @param {string} userId - The ID of the user whose cart subtotal is being requested.
+ *
+ * @see cartCtrl.getCartSubtotal
+ */
+router.get('/:userId/subtotal', cartCtrl.getCartSubtotal);
+
+/**
  * @route   POST /api/cart/:userId/items
  * @summary Add a book to a user's cart, or increment its quantity if already present.
  * @access  Public
@@ -42,6 +59,22 @@ router.get('/:userId', cartCtrl.getCartByUser);
  * @see cartCtrl.addBookToCart
  */
 router.post('/:userId/items', cartCtrl.addBookToCart);
+
+/**
+ * @route   DELETE /api/cart/:userId/items/:bookId
+ * @summary Remove a book from a user's shopping cart.
+ * @access  Public
+ *
+ * Spec compliance: Feature 3 · Action 4 ("Delete a book from the shopping
+ * cart instance for that user"). Deletes the entire CartItem row for the
+ * (user, book) pair — quantity is not decremented.
+ *
+ * @param {string} userId - The ID of the user whose cart is being modified.
+ * @param {string} bookId - The ID of the book to remove from the cart.
+ *
+ * @see cartCtrl.removeBookFromCart
+ */
+router.delete('/:userId/items/:bookId', cartCtrl.removeBookFromCart);
 
 /** Export the configured router so server.js can mount it with app.use() */
 module.exports = router;
