@@ -12,12 +12,12 @@
 
 | Name | Role | Feature |
 |---|---|---|
-| Francisco Sierra | Scrum Master (Sprint 1 & 2) · Feature Owner | Book Details |
-| Guillermo Yepez | Product Owner (Sprint 1) · Feature Owner | Book Rating & Commenting |
-| Shreya Sureshbabu Banumathi | Feature Owner | Book Browsing & Sorting |
-| Stewart Smith Jr | Feature Owner | Profile Management |
-| Santiago Suli Ramirez | Feature Owner | Shopping Cart |
-| Hiram Torres-Marin | Feature Owner | Wishlist Management |
+| Francisco Sierra | Scrum Master (Sprint 1) · Product Owner (Sprint 2) · Feature Owner | Book Details |
+| Guillermo Yepez | Product Owner (Sprint 1) · Scrum Master (Sprint 2) · Feature Owner | Book Rating & Commenting |
+| Shreya Sureshbabu Banumathi |Scrum Master (Sprint 5) · Feature Owner | Book Browsing & Sorting |
+| Stewart Smith Jr | Scrum Master (Sprint 3) · Product Owner (Sprint 4) · Feature Owner | Profile Management |
+| Santiago Suli Ramirez | Product Owner (Sprint 3) · Scrum Master (Sprint 4) · Feature Owner | Shopping Cart |
+| Hiram Torres-Marin | Product Owner (Sprint 5) · Feature Owner | Wishlist Management |
 
 **Sprint Schedule**
 
