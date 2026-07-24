@@ -94,7 +94,7 @@ app.use('/api/books', bookRoutes); // All book-related endpoints (browse, detail
 app.use('/api/cart',  cartRoutes); // Add-to-cart, view cart (Sprint 3 — Shopping Cart)
 app.use('/api/users', profileRoutes); // User profile creation and management
 app.use('/api/authors', authorRoutes); // Author creation (Book Details — admin feature)
-app.use('/api/cart',  cartRoutes); // Add-to-cart, view cart (Sprint 3 — Shopping Cart)
+app.use('/api/books', browsingRoutes);
 
 app.use('/api', ratingsRoutes); // Star ratings and written comments.
 // Uncomment as each sprint's feature is implemented and its branch is merged:
