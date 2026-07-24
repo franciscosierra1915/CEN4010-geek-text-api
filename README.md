@@ -554,6 +554,11 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 
 | Method | URL | Description |
 |---|---|---|
+| `GET` | `/api/books` | Returns a list of all 30 books with author, publisher, and genre info. |
+| `GET` | `/api/books/isbn/:isbn` | Returns a single book by ISBN with ratings, comments, and average rating. Replace `:isbn` with an actual ISBN, e.g. `/api/books/isbn/9780132350884`. |
+| `POST` | `/api/books` | Creates a new book (admin). Requires isbn, title, description, price, yearPublished, authorId, genreId, publisherId. |
+| `POST` | `/api/authors` | Creates a new author (admin). Requires firstName, lastName; biography and publisherId optional. |
+| `GET` | `/api/authors/:id/books` | Returns every book written by the given author, with publisher and genre info. Returns 404 if the author doesn't exist, or `{ count: 0, data: [] }` if they exist but have no books yet. |
 
 ### Rating and Comments - Guillermo Yepez
 
@@ -565,7 +570,7 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 | `POST` | `/api/ratings` | Creates a new rating or updates an existing rating for a user on a 1-5 star scale. |
 | `POST` | `/api/comments` | Creates or updates a text-based book review/comment. |
 
-### Shopping Cart
+### Shopping Cart - Santiago Suli Ramirez
 
 > Implemented on the `Shopping-Cart` feature branch. The endpoints below reflect that branch's implementation.
 
@@ -628,7 +633,7 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 | `404` | The referenced user or book doesn't exist. |
 | `500` | Unexpected database error. |
 
-### Planned Endpoints (Sprint 3+)
+### Book Browsing and Sorting - Shreya Sureshbabu Banumathi
 
 | Method | URL | Description |
 |---|---|---|
@@ -653,26 +658,14 @@ An **endpoint** is a URL + HTTP method combination that the server responds to. 
 | `POST` | `/api/users/:username/credit-card` | Adds a new credit card to the specified user's account. |
 | `GET` | `/api/users/:username/credit-card` | Retrieves all credit cards associated with the specified user. |
 
-| Method | URL | Description |
-|---|---|---|
-
-### Shopping Cart - Santiago Suli Ramirez
-
-| Method | URL | Description |
-|---|---|---|
-
 ### Wishlist Management - Hiram Torres-Marin
 
 | Method | URL | Description |
 |---|---|---|
-| `GET` | `/api/books/genre/:genreId` | Book Browsing — filter by genre |
-| `GET` | `/api/books/top-sellers` | Book Browsing — top 10 by copies sold |
-| `GET` | `/api/books/rating/:minRating` | Book Browsing — filter by minimum rating |
-| `GET` | `/api/books/publisher/:publisherId` | Book Browsing — filter by publisher |
-| `GET` | `/api/users/:id` | Profile Management — get user profile |
-| `POST` | `/api/users` | Profile Management — create user |
-| `POST` | `/api/ratings` | Ratings & Comments — submit a rating |
-| `GET` | `/api/wishlists/:userId` | Wishlist Management — get user's wishlists |
+| `POST` | `/api/wishlists` | Creates a new wishlists. |
+| `POST` | `/api/wishlists/:wishlistId/books/:bookId` | Adds a book to a wishlist. |
+| `GET` | `/api/wishlists/:wishlistId/books` | Views the books in the wishlist. |
+| `DELETE` | `/api/wishlists/:wishlistId/books/:bookId/move-to-cart` | Moves a book from the wishlist to the shopping cart and deletes it from the wishlist. |
 
 ---
 
