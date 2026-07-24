@@ -167,7 +167,7 @@ const discountBooksByPublisher = async (req, res) => {
   try {
     // Extract publisher ID from the URL
     const publisherId = Number(req.params.publisherId);
-    if (isNaN(publisherId)) {
+    if (isNaN(publisherId) || publisherId < 1 || publisherId > 5) {
       return res.status(400).json({
         error: "A valid publisher ID is required."
       });
