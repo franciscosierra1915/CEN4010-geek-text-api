@@ -486,31 +486,31 @@
     },
     {
       "name": "🔍 Book Browsing & Sorting (Shreya Sureshbabu Banumathi)",
-      "description": "Feature owner: Shreya Sureshbabu Banumathi\nBranch: Book-Browsing-and-Sorting\n\nEndpoints for filtering and sorting the book catalog.\n\nAll endpoints: Sprint 3 🔜",
+      "description": "Feature owner: Shreya Sureshbabu Banumathi\nBranch: Book-Browsing-and-Sorting\n\nEndpoints for filtering and sorting the book catalog.\n"
       "item": [
         {
-          "name": "🔜 GET /api/books/genre/:genreId — Books by genre [Sprint 3]",
+          "name": "✅ GET /api/books/genre/:genreName — Books by genre",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/books/genre/1",
+              "raw": "{{baseUrl}}/api/books/genre/Software Engineering",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "books", "genre", "1"],
+              "path": ["api", "books", "genre", "Software Engineering"],
               "variable": [
                 {
-                  "key": "genreId",
-                  "value": "1",
-                  "description": "Genre IDs: 1=Software Engineering, 2=Artificial Intelligence, 3=Cybersecurity, 4=Cloud Computing, 5=Data Science"
+                  "key": "genreName",
+                  "value": "Software Engineering",
+                  "description": "Genre Names: 1=Software Engineering, 2=Artificial Intelligence, 3=Cybersecurity, 4=Cloud Computing, 5=Data Science"
                 }
               ]
             },
-            "description": "Returns all books belonging to a specific genre.\n\n**Sample genre IDs:**\n- 1 = Software Engineering\n- 2 = Artificial Intelligence\n- 3 = Cybersecurity\n- 4 = Cloud Computing\n- 5 = Data Science\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+            "description": "Returns all books belonging to a specific genre.\n\n**Sample genre Names:**\n- 1 = Software Engineering\n- 2 = Artificial Intelligence\n- 3 = Cybersecurity\n- 4 = Cloud Computing\n- 5 = Data Science\n\n** Implemented **\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
           },
           "response": []
         },
         {
-          "name": "🔜 GET /api/books/top-sellers — Top 10 selling books [Sprint 3]",
+          "name":  "✅ GET /api/books/top-sellers — Top 10 selling books",
           "request": {
             "method": "GET",
             "header": [],
@@ -519,12 +519,12 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "books", "top-sellers"]
             },
-            "description": "Returns the top 10 books ranked by copies sold (descending).\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+            "description": "Returns the top 10 books ranked by copies sold (descending).\n\n** Implemented**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
           },
           "response": []
         },
         {
-          "name": "🔜 GET /api/books/rating/:minRating — Books by minimum rating [Sprint 3]",
+          "name": "✅ GET /api/books/rating/:minRating — Books by minimum rating",
           "request": {
             "method": "GET",
             "header": [],
@@ -533,12 +533,12 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "books", "rating", "4"]
             },
-            "description": "Returns all books whose average rating is at or above the specified minimum (1–5).\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+            "description": "Returns all books whose average rating is at or above the specified minimum (1–5).\n\n** Implemented **\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
           },
           "response": []
         },
         {
-          "name": "🔜 GET /api/books/publisher/:publisherId — Books by publisher with discount [Sprint 3]",
+          "name": "✅ GET /api/books/publisher/:publisherId — Books by publisher with discount",
           "request": {
             "method": "GET",
             "header": [],
@@ -550,11 +550,11 @@
                 {
                   "key": "publisherId",
                   "value": "1",
-                  "description": "Publisher IDs: 1=O'Reilly (10%), 2=No Starch Press (15%), 3=Addison-Wesley (5%), 4=Manning (20%), 5=Packt (25%)"
+                  "description": "Publisher IDs: 1=Packt Publishing (25%), 2=O'Reilly Media (10%), 3=Addison-Wesley (5%), 4=No Starch Press (15%), 5=Manning Publications (20%)"
                 }
               ]
             },
-            "description": "Returns all books from a specific publisher with the publisher's discount percentage applied to the price.\n\n**Sample publisher IDs:**\n- 1 = O'Reilly Media (10% discount)\n- 2 = No Starch Press (15% discount)\n- 3 = Addison-Wesley (5% discount)\n- 4 = Manning Publications (20% discount)\n- 5 = Packt Publishing (25% discount)\n\n**Sprint 3 — Not yet implemented 🔜**\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
+            "description": "Returns all books from a specific publisher with the publisher's discount percentage applied to the price.\n\n**Sample publisher IDs:**\n- 1 = Packt Publishing (25% discount)\n- 2 = O'Reilly Media (10% discount)\n- 3 = Addison-Wesley (5% discount)\n- 4 = No Starch Press (15% discount)\n- 5 = Manning Publications (20% discount)\n\n** Implemented **\n\nOwner: Shreya Sureshbabu Banumathi — Book-Browsing-and-Sorting branch."
           },
           "response": []
         }
